@@ -7,19 +7,19 @@ font:
 
 #  family: 
   normal:
-    family: JetBrains Mono 
+    family: ComicMono Nerd Font 
     style: Semibold
 
   bold:
-    family: JetBrains Mono   
+    family: ComicMono Nerd Font   
     style: Bold
 
   italic:
-    family: JetBrains Mono   
+    family: ComicMono Nerd Font   
     style: Italic
 
   bold_italic:
-    family: JetBrains Mono  
+    family: ComicMono Nerd Font  
 
 # cursor:
 #   text: '#191919'

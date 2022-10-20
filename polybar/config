@@ -43,7 +43,7 @@ padding-right = 2
 module-margin-left = 1
 module-margin-right = 0.5
 
-font-0 = WenQuanYi Zen Hei:style=Regular:pixelsize=13;2
+font-0 = ComicMono Nerd Font:style=Regular:pixelsize=13;3
 # font-1 = Font Awesome 5 Brands Regular:style=Regular:pixelsize=12;2
 font-1 = unifont:fontformat=truetype:size=14:antialias=false;2
 font-2 = siji:style=Regular:pixelsize=24;2
@@ -144,10 +144,10 @@ label-empty-padding = 1
 ; label-separator = |
 
 ws-icon-0 = 1;
-ws-icon-1 = 2;
+ws-icon-1 = 2;
 ws-icon-2 = 3;
 ws-icon-3 = 4; 
-ws-icon-4 = 5;
+ws-icon-4 = 5;
 
 [module/mpd]
 type = internal/mpd
