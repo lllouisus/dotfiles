@@ -235,7 +235,7 @@ interval = 3.0
 
 format-connected-prefix = " "
 format-connected-prefix-foreground = ${colors.foreground-alt}
-label-connected = %local_ip%
+label-connected =  %local_ip%
 
 format-disconnected =
 ;format-disconnected = <label-disconnected>
@@ -261,11 +261,11 @@ label = %date% %time%
 [module/pulseaudio]
 type = internal/pulseaudio
 
-format-volume = <label-volume><bar-volume>
+format-volume = <label-volume> <bar-volume>
 label-volume = 
 label-volume-foreground = ${root.foreground}
 
-label-muted = ﱝMuted
+label-muted = ﱝ Muted
 label-muted-foreground = #666
 
 bar-volume-width = 3
@@ -324,7 +324,7 @@ format-charging = <animation-charging><label-charging>
 format-discharging = <animation-discharging> <label-discharging>
 format-discharging-underline = ${self.format-charging-underline}
 
-format-full-prefix = " "
+format-full-prefix = "  "
 format-full-prefix-foreground = ${colors.foreground-alt}
 format-full-underline = ${self.format-charging-underline}
 
