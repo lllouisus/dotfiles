@@ -1,11 +1,9 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
-# Terminate already running bar instances
-killall -q polybar
-# If all your bars have ipc enabled, you can also use 
-# polybar-msg cmd quit
+THEME="murz"
 
-# Launch Polybar, using default config location ~/.config/polybar/config.ini
-polybar config 2>&1 | tee -a /tmp/polybar.log & disown
+killall polybar
+while pgrep -u $UID -x polybar >/dev/null; do sleep 1; done
 
-echo "Polybar launched..."
+CONFIG_DIR=$HOME/.config/polybar/$THEME/config.ini
+polybar main -c $CONFIG_DIR &
