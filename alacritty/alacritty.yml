@@ -45,62 +45,31 @@ scrolling:
 draw_bold_text_with_bright_colors: true
 
 colors:
+  # Default colors
   primary:
-  # Vifrification Style
-    background: '#0A0E14'
-    foreground: '#B3B1AD'
-    bright_foreground: '#ffffff'
+    background: '#0a0f14'
+    foreground: '#98d1ce'
 
-  # Nord Style
-    # background: '#1E1E2E'
-    # foreground: '#CDD6F4'
-
-cursor:
-  text: CellBackground
-  cursor: CellForeground
-  vi_mode_cursor:
-    text: CellBackground
-    cursor: CellForeground
-  search:
-    matches:
-      foreground: '#44475a'
-      background: '#50fa7b'
-    focused_match:
-      foreground: '#44475a'
-      background: '#ffb86c'
-    bar:
-      background: '#282a36'
-      foreground: '#f8f8f2'
-  hints:
-    start:
-      foreground: '#282a36'
-      background: '#f1fa8c'
-    end:
-      foreground: '#f1fa8c'
-      background: '#282a36'
-  line_indicator:
-    foreground: None
-    background: None
-  selection:
-    text: CellForeground
-    background: '#44475a'
+  # Normal colors
   normal:
     black: '#21222c'
     red: '#ff5555'
     green: '#50fa7b'
     yellow: '#f1fa8c'
-    blue: '#bd93f9'
+    blue: '#268bd2'
     magenta: '#ff79c6'
-    cyan: '#8be9fd'
-    white: '#f8f8f2'
+    cyan: '#C586C0'
+    white: '#ffffff'
+
+  # Bright colors
   bright:
     black: '#6272a4'
-    red: '#ff6e6e'
+    red: '#dc322f'
     green: '#69ff94'
-    yellow: '#ffffa5'
-    blue: '#d6acff'
-    magenta: '#ff92df'
-    cyan: '#a4ffff'
+    yellow: '#b58900'
+    blue: '#268bd2'
+    magenta: '#d33682'
+    cyan: '#2aa198'
     white: '#ffffff'
 
 cursor:  
