@@ -31,7 +31,7 @@ cursor:
 
 # background_opacity: 0.7
 window:
-  opacity: 0.7
+  opacity: 0.85
 
 scrolling:  
   # 回滚缓冲区中的最大行数。 设置为 0 会禁用滚动
@@ -47,16 +47,12 @@ draw_bold_text_with_bright_colors: true
 colors:
   # Default colors
   primary:
-    # background: '#002b36'
+    background: '#041818'
+    foreground: '#839496'
+
+    # mine best
+    # background: '#051B1B'
     # foreground: '#839496'
-
-    # seashells
-    # background: '#061923'
-    # foreground: '#e5c49e'
-
-    # gotham
-    background: '#0a0f14'
-    foreground: '#98d1ce'
 
   normal:
     black: '#01060E'
