@@ -5,20 +5,20 @@ static const int newclientathead         = 0;         /* 定义新窗口在栈�
 static const unsigned int borderpx       = 2;         /* 窗口边框大小 */
 static const unsigned int systraypinning = 1;         /* 托盘跟随的显示器 0代表不指定显示器 */
 static const unsigned int systrayspacing = 1;         /* 托盘间距 */
-static const unsigned int systrayspadding = 2;        /* 托盘和状态栏的间隙 */
-static int gappi                         = 5;        /* 窗口与窗口 缝隙大小 */
-static int gappo                         = 5;        /* 窗口与边缘 缝隙大小 */
-static const int _gappo                  = 3;        /* 窗口与窗口 缝隙大小 不可变 用于恢复时的默认值 */
-static const int _gappi                  = 8;        /* 窗口与边缘 缝隙大小 不可变 用于恢复时的默认值 */
-static const int vertpad                 = 12;         /* vertical padding of bar */
-static const int sidepad                 = 12;         /* horizontal padding of bar */
-static const int overviewgappi           = 8;        /* overview时 窗口与边缘 缝隙大小 */
-static const int overviewgappo           = 20;        /* overview时 窗口与窗口 缝隙大小 */
+static const unsigned int systrayspadding = 5;        /* 托盘和状态栏的间隙 */
+static int gappi                         = 12;        /* 窗口与窗口 缝隙大小 Mine 5 */  
+static int gappo                         = 12;        /* 窗口与边缘 缝隙大小 Mine 5 */
+static const int _gappo                  = 12;        /* 窗口与窗口 缝隙大小 不可变 用于恢复时的默认值 */
+static const int _gappi                  = 12;        /* 窗口与边缘 缝隙大小 不可变 用于恢复时的默认值 */
+static const int vertpad                 = 5;         /* vertical padding of bar Mine 12 */
+static const int sidepad                 = 5;         /* horizontal padding of bar Mine 12*/
+static const int overviewgappi           = 24;        /* overview时 窗口与边缘 缝隙大小 Mine 5 */
+static const int overviewgappo           = 60;        /* overview时 窗口与窗口 缝隙大小 Mine 24 */
 static const int showbar                 = 1;         /* 是否显示状态栏 */
 static const int topbar                  = 1;         /* 指定状态栏位置 0底部 1顶部 */
 static const float mfact                 = 0.6;       /* 主工作区 大小比例 */
 static const int   nmaster               = 1;         /* 主工作区 窗口数量 */
-static const unsigned int snap           = 8;        /* 边缘依附宽度 */
+static const unsigned int snap           = 10;        /* 边缘依附宽度 */
 static const unsigned int baralpha       = 0xc0;      /* 状态栏透明度 */
 static const unsigned int borderalpha    = 0xdd;      /* 边框透明度 */
 static const char *fonts[]               = { "ComicMono Nerd Font:style=medium:size=11", "monospace:size=11" };
@@ -93,6 +93,7 @@ static Key keys[] = {
     { MODKEY,                       XK_Return, spawn,          {.v = termcmd } },
 
     { MODKEY,              XK_Tab,          focusstack,       {.i = +1} },               /* super tab          |  本tag内切换聚焦窗口 */
+    { MODKEY|ShiftMask,    XK_Tab,          focusstack,       {.i = -1} },               /* super tab          |  本tag内切换聚焦窗口 */
     { MODKEY,              XK_k,            focusstack,       {.i = -1} },               /* super up           |  本tag内切换聚焦窗口 */
     { MODKEY,              XK_j,            focusstack,       {.i = +1} },               /* super down         |  本tag内切换聚焦窗口 */
 
@@ -109,7 +110,7 @@ static Key keys[] = {
     { MODKEY,              XK_g,            hidewin,          {0} },                     /* super h            |  隐藏 窗口 */
     { MODKEY|ShiftMask,    XK_g,            restorewin,       {0} },                     /* super shift h      |  取消隐藏 窗口 */
 
-    { MODKEY|ShiftMask,    XK_Return,       zoom,             {0} },                     /* super shift enter  |  将当前聚焦窗口置为主窗口 */
+    { MODKEY,              XK_s,            zoom,             {0} },                     /* super shift s      | 将当前聚焦窗口置为主窗口 */
 
     { MODKEY,              XK_q,            togglefloating,   {0} },                     /* super q            |  开启/关闭 聚焦目标的float模式 */
     { MODKEY|ShiftMask,    XK_q,            toggleallfloating,{0} },                     /* super shift q      |  开启/关闭 全部目标的float模式 */
@@ -146,9 +147,9 @@ static Key keys[] = {
     { MODKEY|Alt,     XK_l,           resizewin,        {.ui = H_EXPAND} },        /* super ctrl right   |  调整窗口 */
 
     /* spawn + SHCMD 执行对应命令 */
-    { Alt,                                  XK_l,                         spawn,            SHCMD("rofi -show drun -show-icons") },
-    { Alt|ShiftMask,                        XK_l,                         spawn,            SHCMD("rofi -show run -show-icons") },
-    { Alt|ControlMask|ShiftMask,            XK_l,                         spawn,            SHCMD("rofi -show ssh -show-icons") },
+    { Alt,                                  XK_l,                         spawn,            SHCMD("rofi -show drun -theme mine -show-icons") },
+    { Alt|ShiftMask,                        XK_l,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
+    { Alt|ControlMask|ShiftMask,            XK_l,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
 
     { MODKEY,                               XK_F3,                        spawn,            SHCMD("amixer set Master toggle") },
     { MODKEY,                               XK_F1,                        spawn,            SHCMD("xbacklight -get -5") },
