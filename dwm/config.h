@@ -107,14 +107,17 @@ static Key keys[] = {
     { MODKEY|Alt,          XK_Left,         setmfact,         {.f = -0.01} },            /* super ,            |  缩小主工作区 */
     { MODKEY|Alt,          XK_Right,        setmfact,         {.f = +0.01} },            /* super .            |  放大主工作区 */
 
-    { MODKEY,              XK_g,            hidewin,          {0} },                     /* super h            |  隐藏 窗口 */
-    { MODKEY|ShiftMask,    XK_g,            restorewin,       {0} },                     /* super shift h      |  取消隐藏 窗口 */
+    { MODKEY,              XK_d,            hidewin,          {0} },                     /* super d            |  隐藏 窗口 */
+    { MODKEY|ShiftMask,    XK_d,            restorewin,       {0} },                     /* super shift d      |  取消隐藏 窗口 */
 
     { MODKEY,              XK_s,            zoom,             {0} },                     /* super shift s      | 将当前聚焦窗口置为主窗口 */
 
     { MODKEY,              XK_q,            togglefloating,   {0} },                     /* super q            |  开启/关闭 聚焦目标的float模式 */
     { MODKEY|ShiftMask,    XK_q,            toggleallfloating,{0} },                     /* super shift q      |  开启/关闭 全部目标的float模式 */
     { MODKEY,              XK_f,            fullscreen,       {0} },                     /* super f            |  开启/关闭 全屏 */
+
+    { MODKEY,              XK_g,            toggleglobal,     {0} },                     /* super g            |  开启/关闭 全局 */
+
     { MODKEY|ShiftMask,    XK_f,            togglebar,        {0} },                     /* super shift f      |  开启/关闭 状态栏 */
     { MODKEY,              XK_e,            incnmaster,       {.i = +1} },               /* super e            |  改变主工作区窗口数量 (1 2中切换) */
 
