@@ -154,9 +154,9 @@ static Key keys[] = {
     { Alt|ShiftMask,                        XK_l,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
     { Alt|ControlMask|ShiftMask,            XK_l,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
 
-    { MODKEY,                               XK_F3,                        spawn,            SHCMD("amixer set Master toggle") },
     { MODKEY,                               XK_F1,                        spawn,            SHCMD("xbacklight -get -5") },
     { MODKEY,                               XK_F2,                        spawn,            SHCMD("xbacklight -get +5") },
+    { MODKEY,                               XK_F3,                        spawn,            SHCMD("amixer set Master toggle") },
 
     { Alt,                                  XK_s,                         spawn,            SHCMD("flameshot gui -p ~/Screenshot/shot") },
     { Alt|ShiftMask,                        XK_s,                         spawn,            SHCMD("flameshot gui -d 3000 -p ~/Screenshot/shot") },
@@ -165,7 +165,7 @@ static Key keys[] = {
     { Alt|ControlMask,                      XK_l,                         spawn,            SHCMD("slock") },
     { Alt,                                  XK_u,                         spawn,            SHCMD("pcmanfm") },
     { Alt,                                  XK_y,                         spawn,            SHCMD("/home/louis/.config/Build/Qv2ray/./Qv2ray") },
-    { Alt,                                  XK_k,                         spawn,            SHCMD("screenkey") },
+    { Alt,                                  XK_k,                         spawn,            SHCMD("screenkey -p fixed -g 50%x8%+25%-11%") },
     { Alt|ShiftMask,                        XK_k,                         spawn,            SHCMD("killall screenkey") },
 
     // --------------------------------------------------------------------
