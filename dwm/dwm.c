@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/time.h>
+#include <time.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <X11/Xatom.h>
@@ -142,8 +143,20 @@ typedef struct {
 } Key;
 
 typedef struct {
+	int nmaster;
+	int nstack;
+	int layout;
+	int masteraxis; // master stack area
+	int stack1axis; // primary stack area
+	int stack2axis; // secondary stack area, e.g. centered master
+	void (*symbolfunc)(Monitor *, unsigned int);
+} LayoutPreset;
+
+
+typedef struct {
 	const char *symbol;
 	void (*arrange)(Monitor *);
+	LayoutPreset preset;
 } Layout;
 
 typedef struct Pertag Pertag;
@@ -151,6 +164,8 @@ struct Monitor {
 	char ltsymbol[16];
 	float mfact;
 	int nmaster;
+	int ltaxis[4];
+	int nstack;
 	int num;
 	int by;               /* bar geometry */
 	int bt;               /* number of tasks */
@@ -190,8 +205,10 @@ struct Systray {
 
 /* function declarations */
 static void logtofile(char log[100]);
+void gDebug(const char *fmt, ...);
 
 static void tile(Monitor *m);
+static void tile_right(Monitor *m);
 static void magicgrid(Monitor *m);
 static void overview(Monitor *m);
 static void grid(Monitor *m, uint gappo, uint uappi);
@@ -219,17 +236,26 @@ static Monitor *dirtomon(int dir);
 
 static void drawbar(Monitor *m);
 static void drawbars(void);
+static void enqueue(Client *c);
+static void enqueuestack(Client *c);
 static int drawstatusbar(Monitor *m, int bh, char* text);
 
 static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 
 static void focusin(XEvent *e);
+static void focusdir(const Arg *arg);
 static void focus(Client *c);
 static void focusmon(const Arg *arg);
 static void focusstack(const Arg *arg);
 
 static void pointerfocuswin(Client *c);
+
+
+
+Client *DirectionSelect(const Arg *arg);
+void ExchangeClient(const Arg *arg);
+void ExchangeTwoClient(Client *c1,Client *c2);
 
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
@@ -259,6 +285,7 @@ static void forcekillclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
+static void monocle(Monitor *m);
 static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
 static void movewin(const Arg *arg);
@@ -271,6 +298,8 @@ static void setup(void);
 static void seturgent(Client *c, int urg);
 static void sigchld(int unused);
 static void spawn(const Arg *arg);
+static void sighup(int unused);
+static void sigterm(int unused);
 static Monitor *systraytomon(Monitor *m);
 
 static Monitor *recttomon(int x, int y, int w, int h);
@@ -281,6 +310,7 @@ static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
 static void resizerequest(XEvent *e);
 static void restack(Monitor *m);
+static void rotatestack(const Arg *arg);
 
 static void run(void);
 static void runAutostart(void);
@@ -292,6 +322,7 @@ static void setfocus(Client *c);
 
 static void selectlayout(const Arg *arg);
 static void setlayout(const Arg *arg);
+static void cyclelayout(const Arg *arg);
 
 static void fullscreen(const Arg *arg);
 static void setfullscreen(Client *c, int fullscreen);
@@ -306,6 +337,7 @@ static void togglebar(const Arg *arg);
 static void togglesystray();
 static void togglefloating(const Arg *arg);
 static void toggleallfloating(const Arg *arg);
+
 static void togglescratch(const Arg *arg);
 
 static void unfocus(Client *c, int setfocus);
@@ -343,6 +375,8 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void xinitvisual();
 static void zoom(const Arg *arg);
 
+#include "flextile-deluxe.h"
+
 /* variables */
 static Systray *systray =  NULL;
 static const char broken[] = "broken";
@@ -373,6 +407,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[UnmapNotify] = unmapnotify
 };
 static Atom wmatom[WMLast], netatom[NetLast], xatom[XLast];
+static int restart = 0;
 static int running = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
@@ -396,9 +431,13 @@ struct Pertag {
 	int nmasters[LENGTH(tags) + 1]; /* number of windows in master area */
 	float mfacts[LENGTH(tags) + 1]; /* mfacts per tag */
 	unsigned int sellts[LENGTH(tags) + 1]; /* selected layouts */
-	const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
+	// const Layout *ltidxs[LENGTH(tags) + 1][2]; /* matrix of tags and layouts indexes  */
+	int nstacks[LENGTH(tags) + 1]; /* number of windows in primary stack area */
+	int ltaxis[LENGTH(tags) + 1][LTAXIS_LAST];
+	const Layout *ltidxs[LENGTH(tags) + 1][3]; /* matrix of tags and layouts indexes  */
 	int showbars[LENGTH(tags) + 1]; /* display bar for the current tag */
 };
+#include "flextile-deluxe.c"
 
 /* function implementations */
 void
@@ -407,6 +446,23 @@ logtofile(char log[100])
     char cmd [150];
     sprintf(cmd, "echo '%s' >> ~/log", log);
     system(cmd);
+}
+
+char _gDebugBuf[150];
+void gDebug(const char *fmt, ...) {
+#ifdef G_NO_DEBUG_OUTPUT 
+  return;
+#endif 
+  va_list ap;
+  va_start(ap, fmt);
+  vsprintf((char *) _gDebugBuf, fmt, ap);
+  va_end(ap);
+  int i = strlen((const char *) _gDebugBuf); 
+  char tmp[150];
+  sprintf(tmp,"%.*s", i, _gDebugBuf);
+  char cmd[150];
+  sprintf(cmd, "echo '%s' >> ~/log",tmp);
+  system(cmd);
 }
 
 void
@@ -428,6 +484,9 @@ applyrules(Client *c)
     class    = ch.res_class ? ch.res_class : broken;
     instance = ch.res_name  ? ch.res_name  : broken;
 
+    // use for debug rules
+    // gDebug("c->name=%s",c->name);
+
     for (i = 0; i < LENGTH(rules); i++) {
         r = &rules[i];
         if ((!r->title || strstr(c->name, r->title))
@@ -437,7 +496,12 @@ applyrules(Client *c)
             c->isfloating = r->isfloating;
             c->isglobal = r->isglobal;
             c->isnoborder = r->isnoborder;
-            c->tags |= r->tags;
+
+            // c->tags |= r->tags; // gxt_kt : Let open tags not use rules's tag.
+            if(r->tags==TAGMASK) { // gxt_kt : Only enable for TAGMASK
+                c->tags |= r->tags; 
+            }
+
             if (r->isnoborder)
                 c->bw = 0;
             for (m = mons; m && m->num != r->monitor; m = m->next);
@@ -588,7 +652,9 @@ buttonpress(XEvent *e)
     }
     int status_w = drawstatusbar(selmon, bh, stext);
     int system_w = getsystraywidth();
-    if (ev->window == selmon->barwin || (!c && selmon->showbar && (topbar ? ev->y <= selmon->wy : ev->y >= selmon->wy))) { // 点击在bar上
+    // if (ev->window == selmon->barwin || (!c && selmon->showbar && (topbar ? ev->y <= selmon->wy : ev->y >= selmon->wy + selmon->wh))) { // 点击在bar上
+															// // gxt_kt
+    if (ev->window == selmon->barwin) { // 点击在bar上
         i = x = 0;
         blw = TEXTW(selmon->ltsymbol);
         
@@ -889,11 +955,18 @@ createmon(void)
     m->tagset[0] = m->tagset[1] = 1;
     m->mfact = mfact;
     m->nmaster = nmaster;
+	  m->nstack = nstack;
     m->showbar = showbar;
     m->topbar = topbar;
     m->lt[0] = &layouts[0];
     m->lt[1] = &layouts[1 % LENGTH(layouts)];
     strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
+
+  	m->ltaxis[LAYOUT] = m->lt[0]->preset.layout;
+  	m->ltaxis[MASTER] = m->lt[0]->preset.masteraxis;
+  	m->ltaxis[STACK]  = m->lt[0]->preset.stack1axis;
+  	m->ltaxis[STACK2] = m->lt[0]->preset.stack2axis;
+
     m->pertag = ecalloc(1, sizeof(Pertag));
     m->pertag->curtag = m->pertag->prevtag = 1;
     m->isoverview = 0;
@@ -902,9 +975,16 @@ createmon(void)
         m->pertag->nmasters[i] = m->nmaster;
         m->pertag->mfacts[i] = m->mfact;
 
+    		m->pertag->nstacks[i] = m->nstack;
+
         m->pertag->ltidxs[i][0] = m->lt[0];
         m->pertag->ltidxs[i][1] = m->lt[1];
         m->pertag->sellts[i] = m->sellt;
+
+        m->pertag->ltaxis[i][LAYOUT] = m->ltaxis[LAYOUT];
+        m->pertag->ltaxis[i][MASTER] = m->ltaxis[MASTER];
+        m->pertag->ltaxis[i][STACK]  = m->ltaxis[STACK];
+        m->pertag->ltaxis[i][STACK2] = m->ltaxis[STACK2];
 
         m->pertag->showbars[i] = m->showbar;
     }
@@ -989,7 +1069,13 @@ drawbar(Monitor *m)
     for (c = m->clients; c; c = c->next) {
         if (ISVISIBLE(c))
             n++;
-        occ |= c->tags == TAGMASK ? 0 : c->tags;
+
+        // gxt_kt resolve scratchpad and show vacant tag icon bug
+        if (strcmp(c->name, scratchpadname) != 0) {
+            occ |= c->tags == TAGMASK ? 0 : c->tags;
+        }
+
+        // occ |= c->tags == TAGMASK ? 0 : c->tags;
         if (c->isurgent)
             urg |= c->tags;
     }
@@ -1273,8 +1359,30 @@ clickstatusbar(const Arg *arg)
     }
 
     memset(text, '\0', sizeof(text));
-    // sprintf(text, "%s %s %s &", statusbarscript, signal, button);
+    sprintf(text, "%s %s %s &", statusbarscript, signal, button);
     system(text);
+}
+
+void
+enqueue(Client *c)
+{
+	Client *l;
+	for (l = c->mon->clients; l && l->next; l = l->next);
+	if (l) {
+		l->next = c;
+		c->next = NULL;
+	}
+}
+
+void
+enqueuestack(Client *c)
+{
+	Client *l;
+	for (l = c->mon->stack; l && l->snext; l = l->snext);
+	if (l) {
+		l->snext = c;
+		c->snext = NULL;
+	}
 }
 
 void
@@ -1359,12 +1467,197 @@ focusmon(const Arg *arg)
     pointerfocuswin(NULL);
 }
 
+Client *DirectionSelect(const Arg *arg) {
+    Client *tempClients[100];
+    Client *c = NULL, *tc = selmon->sel;
+    int last = -1, cur = 0, issingle = issinglewin(NULL);
+
+    if (tc && tc->isfullscreen) /* no support for focusstack with fullscreen windows */
+        return NULL;
+    if (!tc)
+        tc = selmon->clients;
+    if (!tc)
+        return NULL;
+
+    for (c = selmon->clients; c; c = c->next) {
+        if (ISVISIBLE(c) && (issingle || !HIDDEN(c))) {
+            last ++;
+            tempClients[last] = c;
+            if (c == tc) cur = last;
+        }
+    }
+
+    if (last < 0) return NULL;
+    int sel_x=tc->x;
+    int sel_y=tc->y;
+    long long int distance=LLONG_MAX;
+    int temp_focus=0;
+    Client *tempFocusClients=NULL;
+    if (arg) {
+        if (arg->i == 3) {
+            for (int _i = 0; _i <= last; _i++) {
+                // 第一步先筛选出右边的窗口 优先选择同一层次的
+                if (tempClients[_i]->x > sel_x && tempClients[_i]->y == sel_y) {
+                    int dis_x = tempClients[_i]->x - sel_x;
+                    int dis_y = tempClients[_i]->y - sel_y;
+                    long long int tmp_distance =
+                        dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                    if (tmp_distance < distance) {
+                        distance = tmp_distance;
+                        tempFocusClients = tempClients[_i];
+                    }
+                }
+            }
+            // 没筛选到,再去除同一层次的要求,重新筛选
+            if (!tempFocusClients) {
+                distance = LLONG_MAX;
+                for (int _i = 0; _i <= last; _i++) {
+                    if (tempClients[_i]->x > sel_x) {
+                        int dis_x = tempClients[_i]->x - sel_x;
+                        int dis_y = tempClients[_i]->y - sel_y;
+                        long long int tmp_distance =
+                            dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                        if (tmp_distance < distance) {
+                          distance = tmp_distance;
+                          tempFocusClients = tempClients[_i];
+                        }
+                    }
+                }
+            }
+            // 确认选择
+            if (tempFocusClients && tempFocusClients->x <= 16384 &&
+                tempFocusClients->y <= 16384) {
+                c = tempFocusClients;
+            }
+        } else if (arg->i == 0) {  // left
+            for (int _i = 0; _i <= last; _i++) {
+                if (tempClients[_i]->x < sel_x && tempClients[_i]->y == sel_y) {
+                    int dis_x = tempClients[_i]->x - sel_x;
+                    int dis_y = tempClients[_i]->y - sel_y;
+                    long long int tmp_distance =
+                        dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                    if (tmp_distance < distance) {
+                        distance = tmp_distance;
+                        tempFocusClients = tempClients[_i];
+                    }
+                }
+            }
+            if (!tempFocusClients) {
+                distance = LLONG_MAX;
+                for (int _i = 0; _i <= last; _i++) {
+                    if (tempClients[_i]->x < sel_x) {
+                        int dis_x = tempClients[_i]->x - sel_x;
+                        int dis_y = tempClients[_i]->y - sel_y;
+                        long long int tmp_distance =
+                            dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                        if (tmp_distance < distance) {
+                          distance = tmp_distance;
+                          tempFocusClients = tempClients[_i];
+                        }
+                    }
+                }
+            }
+            if (tempFocusClients && tempFocusClients->x <= 16384 &&
+                tempFocusClients->y <= 16384) {
+                c = tempFocusClients;
+            }
+        } else if (arg->i == 1) {  // up
+            for (int _i = 0; _i <= last; _i++) {
+                if (tempClients[_i]->y > sel_y && tempClients[_i]->x == sel_x) {
+                    int dis_x = tempClients[_i]->x - sel_x;
+                    int dis_y = tempClients[_i]->y - sel_y;
+                    long long int tmp_distance =
+                        dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                    if (tmp_distance < distance) {
+                        distance = tmp_distance;
+                        tempFocusClients = tempClients[_i];
+                    }
+                }
+            }
+            if (!tempFocusClients) {
+                distance = LLONG_MAX;
+                for (int _i = 0; _i <= last; _i++) {
+                    if (tempClients[_i]->y > sel_y) {
+                        int dis_x = tempClients[_i]->x - sel_x;
+                        int dis_y = tempClients[_i]->y - sel_y;
+                        long long int tmp_distance =
+                            dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                        if (tmp_distance < distance) {
+                          distance = tmp_distance;
+                          tempFocusClients = tempClients[_i];
+                        }
+                    }
+                }
+            }
+            if (tempFocusClients && tempFocusClients->x <= 16384 &&
+                tempFocusClients->y <= 16384) {
+                c = tempFocusClients;
+            }
+        } else if (arg->i == 2) {  // down
+            for (int _i = 0; _i <= last; _i++) {
+                if (tempClients[_i]->y < sel_y && tempClients[_i]->x == sel_x) {
+                    int dis_x = tempClients[_i]->x - sel_x;
+                    int dis_y = tempClients[_i]->y - sel_y;
+                    long long int tmp_distance =
+                        dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                    if (tmp_distance < distance) {
+                        distance = tmp_distance;
+                        tempFocusClients = tempClients[_i];
+                    }
+                }
+            }
+            if (!tempFocusClients) {
+                distance = LLONG_MAX;
+                for (int _i = 0; _i <= last; _i++) {
+                    if (tempClients[_i]->y < sel_y) {
+                        int dis_x = tempClients[_i]->x - sel_x;
+                        int dis_y = tempClients[_i]->y - sel_y;
+                        long long int tmp_distance =
+                            dis_x * dis_x + dis_y * dis_y;  // 计算距离
+                        if (tmp_distance < distance) {
+                          distance = tmp_distance;
+                          tempFocusClients = tempClients[_i];
+                        }
+                    }
+                }
+            }
+            if (tempFocusClients && tempFocusClients->x <= 16384 &&
+                tempFocusClients->y <= 16384) {
+                c = tempFocusClients;
+            }
+        } else {
+          return NULL;
+        }
+    }
+  return c;
+}
+
+void
+focusdir(const Arg *arg)
+{
+    Client *c = NULL;
+    int issingle = issinglewin(NULL);
+    
+    c=DirectionSelect(arg);
+
+    if (issingle) {
+        if (c)
+            hideotherwins(&(Arg) { .v = c });
+    } else {
+        if (c) {
+            pointerfocuswin(c);
+            restack(selmon);
+        }
+    }
+}
+
+
 void
 focusstack(const Arg *arg)
 {
     Client *tempClients[100];
     Client *c = NULL, *tc = selmon->sel;
-    int last = -1, cur = 0, issingle = issinglewin(NULL), hasfloating = 0;
+    int last = -1, cur = 0, issingle = issinglewin(NULL);
 
     if (tc && tc->isfullscreen) /* no support for focusstack with fullscreen windows */
         return;
@@ -1372,15 +1665,9 @@ focusstack(const Arg *arg)
         tc = selmon->clients;
     if (!tc)
         return;
-
-    // 判断是否有浮动窗口
-    for (c = selmon->clients; c && !hasfloating; c = c->next)
-        if (ISVISIBLE(c) && !HIDDEN(c) && c->isfloating)
-            hasfloating = 1;
+    
 
     for (c = selmon->clients; c; c = c->next) {
-        if (hasfloating != c->isfloating) continue; // 如果有浮动窗口，只在浮动窗口中切换
-
         if (ISVISIBLE(c) && (issingle || !HIDDEN(c))) {
             last ++;
             tempClients[last] = c;
@@ -1564,7 +1851,11 @@ hide(Client *c) {
     XSelectInput(dpy, w, ca.your_event_mask);
     XUngrabServer(dpy);
 
-    hiddenWinStack[++hiddenWinStackTop] = c;
+    //gxt_kt resolve bug
+    if (strcmp(c->name, scratchpadname)!=0) { 
+      hiddenWinStack[++hiddenWinStackTop] = c;
+    } 
+
     focus(c->snext);
     arrange(c->mon);
 }
@@ -1631,6 +1922,10 @@ keypress(XEvent *e)
             keys[i].func(&(keys[i].arg));
 }
 
+// gxt_kt 维护一个变量，如果是从强制kill函数来的，就不去检索是否在禁止kill数组里面
+// 换句话说，普通kill会检查，强制kill不会。
+unsigned char if_forcekill2kill =0;
+
 void
 killclient(const Arg *arg)
 {
@@ -1639,6 +1934,27 @@ killclient(const Arg *arg)
 
     if (!selmon->sel)
         return;
+
+    // gxt_kt
+    if (if_forcekill2kill == 0) { // from forcekill to kill
+        c = selmon->clients;
+        int nums = sizeof(disablekillclient) / sizeof(int *);
+        for (int i = 0; i < nums; i++) {
+            if (!strcmp(selmon->sel->name, disablekillclient[i])) {
+                // gDebug("!!! return sel->name=%s", selmon->sel->name);
+                char cmd[150];
+                sprintf(cmd,
+                        "notify-send  '%s' \
+                        'Killclient protected\nPlease use forcekill' ",
+                        selmon->sel->name);
+                system(cmd);
+                return;
+            }
+        }
+        gDebug("kellclient sel->name=%s", selmon->sel->name);
+    }
+    if_forcekill2kill = 0;
+
     if (!sendevent(selmon->sel->win, wmatom[WMDelete], NoEventMask, wmatom[WMDelete], CurrentTime, 0 , 0, 0)) {
         XGrabServer(dpy);
         XSetErrorHandler(xerrordummy);
@@ -1660,6 +1976,10 @@ forcekillclient(const Arg *arg)
 {
     if (!selmon->sel)
         return;
+
+    // gxt_kt
+    if_forcekill2kill = 1; 
+    
     killclient(arg);
     unmanage(selmon->sel, 1);
 }
@@ -2087,10 +2407,119 @@ propertynotify(XEvent *e)
     }
 }
 
+ 
+// restoreafterrestart
+void
+saveSession(void)
+{
+	FILE *fw = fopen(SESSION_FILE, "w");
+	for (Client *c = selmon->clients; c != NULL; c = c->next) { // get all the clients with their tags and write them to the file
+		fprintf(fw, "%lu %u\n", c->win, c->tags);
+	}
+	fclose(fw);
+}
+
+void
+restoreSession(void)
+{
+	// restore session
+	FILE *fr = fopen(SESSION_FILE, "r");
+	if (!fr)
+		return;
+
+	char *str = malloc(23 * sizeof(char)); // allocate enough space for excepted input from text file
+	while (fscanf(fr, "%[^\n] ", str) != EOF) { // read file till the end
+		long unsigned int winId;
+		unsigned int tagsForWin;
+		int check = sscanf(str, "%lu %u", &winId, &tagsForWin); // get data
+		if (check != 2) // break loop if data wasn't read correctly
+			break;
+		
+		for (Client *c = selmon->clients; c ; c = c->next) { // add tags to every window by winId
+			if (c->win == winId) {
+				c->tags = tagsForWin;
+				break;
+			}
+		}
+    }
+
+	for (Client *c = selmon->clients; c ; c = c->next) { // refocus on windows
+		focus(c);
+		restack(c->mon);
+	}
+
+	for (Monitor *m = selmon; m; m = m->next) // rearrange all monitors
+		arrange(m);
+
+	free(str);
+	fclose(fr);
+	
+	// delete a file
+	remove(SESSION_FILE);
+}
+
+//gxt_kt
+void saveTagSession() {
+	FILE *fw = fopen(SESSION_TAG_FILE, "w");
+  fprintf(fw, "%d\n", selmon->sel->tags);
+	fclose(fw);
+}
+//gxt_kt
+void restoreTagSession() {
+	FILE *fr = fopen(SESSION_TAG_FILE, "r");
+	if (!fr)
+		return;
+
+	char str[10] = {0};
+	if (fscanf(fr, "%[^\n] ", str) != EOF) { // read file
+    int tag=0;
+		int check = sscanf(str, "%d",&tag); // get data
+    view(&(Arg) { .ui = tag }); //切换到对应tag
+  }
+
+  for (Monitor *m = selmon; m; m = m->next) // rearrange all monitors
+    arrange(m);
+
+	fclose(fr);
+	
+	// delete a file
+	remove(SESSION_TAG_FILE);
+}
 void
 quit(const Arg *arg)
 {
-    running = 0;
+	if(arg->i) {
+        restart = 1;
+        running=0;
+    }
+
+  // restoreafterrestart
+	if (restart == 1) {
+		saveSession();
+    saveTagSession();
+    // gDebug("saveSession");
+  }
+    // running = 0; // doublepressquitPatch
+	{// doublepressquitPatch
+	FILE *fd = NULL;
+	struct stat filestat;
+
+	if ((fd = fopen(lockfile, "r")) && stat(lockfile, &filestat) == 0) {
+		fclose(fd);
+
+		if (filestat.st_ctime <= time(NULL)-2)
+			remove(lockfile);
+	}
+
+	if ((fd = fopen(lockfile, "r")) != NULL) {
+		fclose(fd);
+		remove(lockfile);
+		running = 0;
+	} else {
+		if ((fd = fopen(lockfile, "a")) != NULL)
+			fclose(fd);
+	}
+	}
 }
 
 Monitor *
@@ -2269,6 +2698,37 @@ restack(Monitor *m)
     XSync(dpy, False);
     while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
+void
+rotatestack(const Arg *arg)
+{
+	Client *c = NULL, *f;
+
+	if (!selmon->sel)
+		return;
+	f = selmon->sel;
+	if (arg->i > 0) {
+		for (c = nexttiled(selmon->clients); c && nexttiled(c->next); c = nexttiled(c->next));
+		if (c){
+			detach(c);
+			attach(c);
+			detachstack(c);
+			attachstack(c);
+		}
+	} else {
+		if ((c = nexttiled(selmon->clients))){
+			detach(c);
+			enqueue(c);
+			detachstack(c);
+			enqueuestack(c);
+		}
+	}
+	if (c){
+		arrange(selmon);
+		//unfocus(f, 1);
+		focus(f);
+		restack(selmon);
+	}
+}
 
 void
 run(void)
@@ -2284,7 +2744,7 @@ run(void)
 void
 runAutostart(void) {
     char cmd [100];
-    // sprintf(cmd, "%s &", autostartscript);
+    sprintf(cmd, "%s &", autostartscript);
     system(cmd);
 }
 
@@ -2458,9 +2918,45 @@ setlayout(const Arg *arg)
 {
     if (arg->v != selmon->lt[selmon->sellt])
         selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag] ^= 1;
-    if (arg->v)
+    if (arg->v) 
         selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt] = (Layout *)arg->v;
+
+  // gxt_kt
+	if (selmon->lt[selmon->sellt]->preset.nmaster && selmon->lt[selmon->sellt]->preset.nmaster != -1)
+		selmon->nmaster = selmon->lt[selmon->sellt]->preset.nmaster;
+	if (selmon->lt[selmon->sellt]->preset.nstack && selmon->lt[selmon->sellt]->preset.nstack != -1)
+		selmon->nstack = selmon->lt[selmon->sellt]->preset.nstack;
+
+	selmon->ltaxis[LAYOUT] = selmon->lt[selmon->sellt]->preset.layout;
+	selmon->ltaxis[MASTER] = selmon->lt[selmon->sellt]->preset.masteraxis;
+	selmon->ltaxis[STACK]  = selmon->lt[selmon->sellt]->preset.stack1axis;
+	selmon->ltaxis[STACK2] = selmon->lt[selmon->sellt]->preset.stack2axis;
+
+	selmon->pertag->ltaxis[selmon->pertag->curtag][LAYOUT] = selmon->ltaxis[LAYOUT];
+	selmon->pertag->ltaxis[selmon->pertag->curtag][MASTER] = selmon->ltaxis[MASTER];
+	selmon->pertag->ltaxis[selmon->pertag->curtag][STACK]  = selmon->ltaxis[STACK];
+	selmon->pertag->ltaxis[selmon->pertag->curtag][STACK2] = selmon->ltaxis[STACK2];
+  
+  
+
     arrange(selmon);
+}
+
+void
+cyclelayout(const Arg *arg) {
+	Layout *l;
+	for(l = (Layout *)layouts; l != selmon->lt[selmon->sellt]; l++);
+	if(arg->i > 0) {
+		if(l->symbol && (l + 1)->symbol)
+			setlayout(&((Arg) { .v = (l + 1) }));
+		else
+			setlayout(&((Arg) { .v = layouts }));
+	} else {
+		if(l != layouts && (l - 1)->symbol)
+			setlayout(&((Arg) { .v = (l - 1) }));
+		else
+			setlayout(&((Arg) { .v = &layouts[LENGTH(layouts) - 2] }));
+	}
 }
 
 void
@@ -2486,6 +2982,9 @@ setup(void)
 
     /* clean up any zombies immediately */
     sigchld(0);
+
+    signal(SIGHUP, sighup);
+    signal(SIGTERM, sigterm);
 
     /* init screen */
     screen = DefaultScreen(dpy);
@@ -2582,8 +3081,14 @@ show(Client *c)
 
     XMapWindow(dpy, c->win);
     setclientstate(c, NormalState);
-    hiddenWinStackTop--;
+
+    // gxt_kt resolve bug
+    if (strcmp(c->name, scratchpadname)!=0) {
+      hiddenWinStackTop--;
+    }
+
     arrange(c->mon);
+
 }
 
 // 该方法为显示当前tag下的窗口的func，切换时会将原窗口下的win放到屏幕之外 (左边的屏幕隐藏到屏幕左边 右边的屏幕隐藏到屏幕右边)
@@ -2615,6 +3120,20 @@ sigchld(int unused)
     if (signal(SIGCHLD, sigchld) == SIG_ERR)
         die("can't install SIGCHLD handler:");
     while (0 < waitpid(-1, NULL, WNOHANG));
+}
+
+void
+sighup(int unused)
+{
+	Arg a = {.i = 1};
+	quit(&a);
+}
+
+void
+sigterm(int unused)
+{
+	Arg a = {.i = 0};
+	quit(&a);
 }
 
 void
@@ -2773,10 +3292,18 @@ void
 restorewin(const Arg *arg) {
     int i = hiddenWinStackTop;
     while (i > -1) {
-        if (HIDDEN(hiddenWinStack[i]) && ISVISIBLE(hiddenWinStack[i])) {
+        if (HIDDEN(hiddenWinStack[i]) && \
+        ISVISIBLE(hiddenWinStack[i]) 
+        )
+        //hiddenWinStack[i]->tags == selmon->tagset[selmon->seltags]  
+        {
             show(hiddenWinStack[i]);
             focus(hiddenWinStack[i]);
             restack(selmon);
+            for (int j = i; j < hiddenWinStackTop+1; ++j) { // need set j<hiddenWinStackTop+1. Because show will reduce hiddenWinStackTop value.
+                hiddenWinStack[j] = hiddenWinStack[j + 1];
+            }
+            //--hiddenWinStackTop; Because show(hiddenWinStack[i]) will reduce hiddenWinStackTop value.
             return;
         }
         --i;
@@ -3291,11 +3818,16 @@ view(const Arg *arg)
     }
 
     selmon->nmaster = selmon->pertag->nmasters[selmon->pertag->curtag];
+	  selmon->nstack = selmon->pertag->nstacks[selmon->pertag->curtag];
     selmon->mfact = selmon->pertag->mfacts[selmon->pertag->curtag];
     selmon->sellt = selmon->pertag->sellts[selmon->pertag->curtag];
     selmon->lt[selmon->sellt] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt];
     selmon->lt[selmon->sellt^1] = selmon->pertag->ltidxs[selmon->pertag->curtag][selmon->sellt^1];
 
+    selmon->ltaxis[LAYOUT] = selmon->pertag->ltaxis[selmon->pertag->curtag][LAYOUT];
+    selmon->ltaxis[MASTER] = selmon->pertag->ltaxis[selmon->pertag->curtag][MASTER];
+    selmon->ltaxis[STACK]  = selmon->pertag->ltaxis[selmon->pertag->curtag][STACK];
+    selmon->ltaxis[STACK2] = selmon->pertag->ltaxis[selmon->pertag->curtag][STACK2];
     if (selmon->showbar != selmon->pertag->showbars[selmon->pertag->curtag])
         togglebar(NULL);
 
@@ -3479,6 +4011,65 @@ grid(Monitor *m, uint gappo, uint gappi)
                0);
 	}
 }
+/* m->ww win_width 窗口宽度
+ * m->wh win_height 窗口高度
+ * m->wx win_x 左上角坐标x
+ * m->wy win_y 左上角坐标y
+ * *
+ */
+void
+tile_right(Monitor *m)
+{
+    unsigned int i, n, mw, mh, sh, my, sy; // mw: master的宽度, mh: master的高度, sh: stack的高度, my: master的y坐标, sy: stack的y坐标
+    unsigned int mx;//master x
+    unsigned int  sw;
+    Client *c;
+
+    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+    if (n == 0) return;
+
+    mh = m->nmaster == 0 ? 0 : (m->wh-2*gappo-gappi*(m->nmaster-1)) / m->nmaster;       // 单个master的高度
+    sh = n == m->nmaster ? 0 : (m->wh-2*gappo-gappi*(n-m->nmaster-1)) / (n - m->nmaster); // 单个stack的高度
+    sw=(m->ww)*m->mfact;
+  
+    if (n > m->nmaster) {
+      mw = m->nmaster ? ((m->ww) * (1-m->mfact)) : 0; // master_width
+      mx=m->wx+sw+gappi/2;
+    }
+    else {
+        mw = m->ww;
+        mx = m->wx+gappo;
+    }
+    
+
+    // 当增加了nmaster,并且只有一个窗口时
+    if(m->nmaster<=2 && n==1) { // one master window
+      for (i = 0, my = sy = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+        resize(c,m->mx+gappo,m->wy+gappo,m->ww-2*c->bw-2*gappo,m->wh-2*c->bw-gappo,0);
+      }
+      return ;
+    }
+
+    for (i = 0, my = sy = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) {
+        if (i < m->nmaster) { // master
+            resize(c,
+                   mx,
+                   m->wy + my + gappo + gappi*i,
+                   mw - 2 * c->bw -gappi/2 -gappo ,
+                   mh - 2 * c->bw,
+                   0);
+            my += HEIGHT(c);
+        } else { // slaver
+            resize(c,
+                   m->wx+gappo,
+                   m->wy + sy+gappo+(i-m->nmaster)*gappi,
+                   sw - 2 * c->bw -gappo - gappi/2,
+                   sh - 2* c->bw,
+                   0);
+            sy += HEIGHT(c);
+        }
+    }
+}
 
 Client *
 wintoclient(Window w)
@@ -3609,6 +4200,79 @@ xinitvisual()
     }
 }
 
+void ExchangeTwoClient(Client* c1, Client* c2) {
+  if(c1==NULL || c2==NULL || c1->mon!=c2->mon) { return ; }
+
+  // 先找c1的上一个节点
+  Client head1;
+  Client *headp1=&head1;
+  headp1->next=selmon->clients;
+  Client *tmp1 = headp1;
+  for (; tmp1 != NULL; tmp1 = tmp1->next) {
+    if(tmp1->next!=NULL) {
+      if( tmp1->next==c1 )
+      break;
+    } else {
+      break;
+    }
+  }
+
+  // 再找c2的上一个节点
+  Client head2;
+  Client *headp2=&head2;
+  headp2->next=selmon->clients;
+  Client *tmp2 = headp2;
+  for (; tmp2 != NULL; tmp2 = tmp2->next) {
+    if(tmp2->next!=NULL) {
+      if( tmp2->next==c2 )
+      break;
+    } else {
+      break;
+    }
+  }
+
+  if(tmp1==NULL) { /* gDebug("tmp1==null"); */ return ; }
+  if(tmp2==NULL) {/*  gDebug("tmp2==null"); */ return ; }
+  if(tmp1->next==NULL) {/*  gDebug("tmp1->next==null"); */ return ; }
+  if(tmp2->next==NULL) { /* gDebug("tmp2->next==null");  */return ; }
+
+  // 当c1和c2为相邻节点时
+  if(c1->next==c2) {
+    c1->next=c2->next;
+    c2->next=c1;
+    tmp1->next=c2;
+  } else if(c2->next==c1) {
+    c2->next=c1->next;
+    c1->next=c2;
+    tmp2->next=c1;
+  } else { // 不为相邻节点
+    tmp1->next=c2;
+    tmp2->next=c1;
+    Client* tmp=c1->next;
+    c1->next=c2->next;
+    c2->next=tmp;
+  }
+
+  // 当更换节点为头节点时，重置头节点
+  if(c1==selmon->clients) {
+    selmon->clients=c2;
+  }else if(c2==selmon->clients) {
+    selmon->clients=c1;
+  }
+  
+	focus(c1);
+	arrange(c1->mon);
+  pointerfocuswin(c1);
+}
+void
+ExchangeClient(const Arg *arg)
+{
+    Client *c = selmon->sel;
+    if (c && (c->isfloating || c->isfullscreen))
+        return;
+    ExchangeTwoClient(c,DirectionSelect(arg));
+}
+
 void
 zoom(const Arg *arg)
 {
@@ -3640,8 +4304,32 @@ main(int argc, char *argv[])
         die("pledge");
 #endif /* __OpenBSD__ */
     scan();
-    runAutostart();
+    /* 重启dwm后避免重复执行autostart脚本 */
+    FILE *file_;
+    if ((file_ = fopen(avoid_repeat_auto_start, "r"))) {
+      fclose(file_);  // exist
+      // gDebug( " file exist");
+    } else {
+      // gDebug( " file don't exist");
+      FILE *file_;
+      if ((file_ = fopen(avoid_repeat_auto_start, "w"))) {
+        fclose(file_);  // create file
+      }
+      // gDebug( "create file");
+      runAutostart();
+    }
+    // runAutostart();
+    
+    // gDebug("restoreSession");
+	  restoreSession();// restoreafterrestart
+    restoreTagSession();// gxt_kt
     run();
+    // if(restart) execvp(argv[0], argv);
+    if(restart) execvp(argv[0], argv); // 重启不删除文件
+    else { //退出就删除文件
+      remove(avoid_repeat_auto_start); //delete file when exit
+      // gDebug("remove file debug point 2");
+    }
     cleanup();
     XCloseDisplay(dpy);
     return EXIT_SUCCESS;

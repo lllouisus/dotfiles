@@ -1,114 +1,88 @@
-# DWM YES
+# DWM
 
-dwm 是一个非常快速, 小巧并使用动态管理窗口的窗口管理器
+fork 自yaoccc https://github.com/yaocccc/dwm 并修改了自己需要的内容
 
-[展示视频: BV1Ef4y1Z7kA](https://www.bilibili.com/video/BV1Ef4y1Z7kA/)
+首先要感谢yaoccc的dwm,主要基于`e49d3b8`历史版本进行了修改
 
-## 功能
 
-- 支持布局 tile(磁块)、magicgrid(进阶的网格布局)
-- 键盘移动/调整窗口大小 且移动/调整时有窗口间吸附效果
-- 窗口隐藏
-- 窗口可自定义是否全局(在所有tag内展示)
-- 更好的浮动窗口支持
-- 优化后的status2d 状态栏，可用鼠标点击操作
-- 系统托盘支持
-- overview
-- mod + tab, 在窗口间切换 有浮动窗口时仅在浮动窗口切换
-- mod + [tag], 切换tag到指定目录时 可指定一个cmd，若目标tag无窗口 则执行该tag
-## 安装
 
- sudo make clean install
+## 本仓库修改内容
 
-## 运行 dwm
+**相比原版修改主要内容为:**
 
-将你的dwm源代码目录写入 ~/.profile, 例如  
+> 1. 增加功能: win+hjkl可以直接聚焦窗口,和vim,tmux的操作逻辑类似. 
+>
+>    原生的是一维聚焦窗口,现在改成二维聚焦,更符合操作直觉
+>
+> 2. 增加功能：win+shift+hjkl二维交换窗口
+>
+> 3. 全部重构statusbar.sh实现，全部采用python实现
+>    
+>    采用python+多线程，使用多线程优化多子任务效率，可以实现同步多子任务1s刷新
+>
+> 4. 增加功能:增加可以不允许普通kill掉程序
+>
+>    比如使用tmux打开很多终端,为了防止手贱误关闭程序,可以把tmux加入到不允许普通kill保护中,当然仍然允许使用forcekill关闭程序;又或者打开腾讯会议共享桌面,开会等关键时刻,防止手贱把腾讯会议关了等等使用场景
+>
+> 5. 增加功能:原生支持键盘操作音量,屏幕亮度调整等
+>
+> 6. 增加功能:优化热重启，在补丁基础上再次优化，不会重复执行autostart
+>
+> 7. 增加了一些补丁,并选择保留补丁特性，在补丁基础上进一步优化，包括但不限于: 
+>    
+>    - 连续两次激活按键关闭dwm才进行关闭,防止误触
+>    - 热重启dwm 更改配置文件重新编译安装后可以直接重启dwm并保留当前已经打开窗口和布局
+>    - 旋转堆栈 可以更改窗口显示顺序 （已经注释，需要手动启用）
+>    - 添加flextile增强布局
 
-```plaintext
-export DWM=~/workspace/dwm
-```
 
-将以下行添加到 .xinitrc 中来通过 `startx` 启动 dwm:  
+**其它一些优化内容为：**
+> 1. 增加功能:在其他符合规则的tag下打开内容,不会自动移动 
+> 
+>    比如chrome固定在tag6,在tag1打开chrome不会自动移动到tag6
+> 
+> 2. 增加右侧tile布局（需要手动启用）
+> 
+>     原版为左侧tile布局，增加右侧布局符合某些操作习惯
+>
+> 3. 彻底修复窗口隐藏和修复的bug 
+>
+>    之前有提过pr,但是后面发现scratchpad仍然会打断窗口恢复，现在这个仓库已经彻底修复，等有时间再去yaoccc那提个pr修复一下
+>
+> 4. 解决tag下没有窗口除了scratchpad仍然显示tag的bug 
+>
+>    比如tag2下打开scratchpad,但tag2没有别的其它窗口,状态栏仍然会显示tag2的图标
 
-```plaintext
-exec dwm
-```
+**其他一些次要修改内容为:**
 
-### Nix Flake
+> 1. 终端使用全部使用Alacritty,原版为st
+> 2. 按键由于hjkl优化，改动较大，建议熟悉vim使用
 
-```sh
-nix run github:yaocccc/dwm
-```
 
-## 状态栏
+## 使用注意事项
 
-请将每一个块置为下列样式, 可直接使用本仓库statusbar相关脚本 或参考使用
+1. config.def.h 文件中调用一些，确保这些命令存在就行，（不存在也可以正常运行，只是缺少对应功能）
 
-```plaintext
-  ^sdate^^c#2D1B46^^b#335566^  11/04 00:42 ^d^
+   测试方法为:手动复制命令到终端中执行,如果成功就没问题
 
-  ^s?????^ => 点击时的信号值
-  ^c?????^ => 前景色
-  ^b?????^ => 背景色
-  ^d^      => 重置颜色
+2. statusbar.py 文件中根据需要注释相应的包，确保要使用的包pip安装了
 
-  也可以直接从^c ^b 定义前景色 后景色透明度
-  ^c#??????0xff^ => 0xff 前景色透明度
-  ^b#??????0x11^ => 0x11 后景色透明度
+3. 我自己dwm的路径为 `~/my_desktop/dwm` , 相关功能的启用需要修改到你们自己的路径.
 
-  本仓库维护了 statusbar脚本 入口为 ./statusbar/statusbar.sh
+   建议也先将dwm安装到和我一样的目录，后续再更改对应路径到你自己的
+
+
+
+## 目前本仓库一些可以优化的地方
+
+1. ~~statusbar中音量功能中加入了一个显示蓝牙设备剩余电量功能,但是目前没法稳定使用,一般在刚开始连接时可以正常检测到,后面就不行. 这个暂时解决不了,只能说暂时不使用功能,需要等待上游更新或arch内核更新. (arch的蓝牙经常不稳定)~~
   
-  模块列表见 ./statusbar/packages
-  
-  若需要使用 请逐个去查看 修改packages中的脚本文件
-  
-  请在dwm启动时 调用 $DWM/statusbar/statusbar.sh cron
+    已经修复，采用其它途径获取蓝牙音量，但不得不说，arch的蓝牙还是不稳定
+   
 
-  注意 ~/.profile中需要有 该环境变量为强依赖关系
-  export DWM=~/workspace/dwm
-
-  点击事件发生时 会调用 $DWM/statusbar/statusbar.sh 并传入信号值 请自行处理
-  例如 $DWM/statusbar/statusbar.sh date L  # 其中date为信号值 L为按键 (L左键 M中键 R右键)
-
-  可执行 $DWM/statusbar/statusbar.sh check 检查是否有模块存在问题
-```
-
-## 随DWM启动的自启动命令
-
-dwm启动时会去调用 ~/scripts/autostart.sh 脚本(如果存在的话)
-
-可参考 [autostart脚本](https://github.com/yaocccc/scripts/blob/master/autostart.sh)
-
-## Q & A
-
-1. 如何启动dwm？
-
-确保 ~/.xinitrc 中有 exec dwm。在tty中使用 startx 命令启动
-
-2. 进入后是黑屏啥都没
-
-壁纸需要用类似feh的软件设置 `feh --randomize --bg-fill ~/pictures/*.png`
-
-3. 打不开终端
-
-务必先修改config.h中启动终端的快捷键，本项目的config.h是我自用的配置 你需要手动修改
-
-例如 可以修改以下部分(如果你用的终端是st的话) 
-
-```plaintext
-    /* spawn + SHCMD 执行对应命令 */
-    { MODKEY,              XK_Return,       spawn,            SHCMD("st") },
-```
-
-4. 字体显示不全
-
-请自行安装字体 仅以archlinux举例
-
-```shell
-yay -S nerd-fonts-jetbrains-mono
-yay -S ttf-material-design-icons
-yay -S ttf-joypixels
-yay -S wqy-microhei
-```
-
-## ENJOY IT 😃
+## 一些其它值得讲的点
+1. 对于一些特殊按键不知道名字，可以在终端内执行`xev`，就可以显示当前所按按键详细信息
+    比如`\`键叫做`XK_backclash`
+    
+2. 在statusbar中使用sudo没法输入密码，解决方法有很多种，不建议采用明文泄露密码，建议采用下面方法：
+    比如pacman执行sudo不需要输入密码,在`/etc/sudoers`加入`${user} ALL=(ALL) NOPASSWD: /usr/bin/pacman`
