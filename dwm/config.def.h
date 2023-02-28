@@ -32,10 +32,7 @@ static const unsigned int borderalpha     = 0xdd;      /* 边框透明度 */
 //=============================================================================
 static const char *fonts[]               = {
       //"monospace:size=15",
-			"Monaco:style=Regular:size=11",
-			"Symbols Nerd Font:style=2048-em:size=17",
-		  "Microsoft YaHei:size=11:style=Regular:antialias=true:autohint:true",
-			"JoyPixels:size=13:antialias=true:autohint=true"
+    "JetBrainsMono Nerd Font:style=medium:size=11", "monospace:size=11"
 };  
 
 
