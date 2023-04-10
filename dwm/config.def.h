@@ -7,8 +7,8 @@ static int showsystray                    = 1;         /* 是否显示托盘栏 
 static const int newclientathead          = 0;         /* 定义新窗口在栈顶还是栈底 */
 static const unsigned int borderpx        = 2;         /* 窗口边框大小 */
 static const unsigned int systraypinning  = 0;         /* 托盘跟随的显示器 0代表不指定显示器 */
-static const unsigned int systrayspacing  = 1;         /* 托盘间距 */
-static const unsigned int systrayspadding = 5;         /* 托盘和状态栏的间隙 */
+static const unsigned int systrayspacing  = 0;         /* 托盘间距 */
+static const unsigned int systrayspadding = 0;         /* 托盘和状态栏的间隙 */
 static int gappi                          = 6;        /* 窗口与窗口 缝隙大小 */
 static int gappo                          = 6;        /* 窗口与边缘 缝隙大小 */
 static const int _gappo                   = 12;        /* 窗口与窗口 缝隙大小 不可变 用于恢复时的默认值 */
@@ -219,15 +219,15 @@ static Key keys[] = {
 //=============================================================================
 //           一些基础快捷键，符合配置的核心按键思想，不建议更改
 //=============================================================================
-  	{ MODKEY,              XK_h,       focusdir,          {.i = 0 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_j,       focusdir,          {.i = 1 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_k,       focusdir,          {.i = 2 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_l,       focusdir,          {.i = 3 } },  // 切换聚焦窗口
+  	{ MODKEY,              XK_e,       focusdir,          {.i = 0 } },  // 切换聚焦窗口
+  	{ MODKEY,              XK_n,       focusdir,          {.i = 1 } },  // 切换聚焦窗口
+  	{ MODKEY,              XK_o,       focusdir,          {.i = 2 } },  // 切换聚焦窗口
+  	{ MODKEY,              XK_h,       focusdir,          {.i = 3 } },  // 切换聚焦窗口
 //-----------------------------------------------------------------------------
-    { MODKEY|ShiftMask,    XK_h,       ExchangeClient,    {.i = 0} },   // 移动窗口
-    { MODKEY|ShiftMask,    XK_j,       ExchangeClient,    {.i = 1 } },  // 移动窗口
-    { MODKEY|ShiftMask,    XK_k,       ExchangeClient,    {.i = 2 } },  // 移动窗口
-    { MODKEY|ShiftMask,    XK_l,       ExchangeClient,    {.i = 3} },   // 移动窗口
+    { MODKEY|ShiftMask,    XK_e,       ExchangeClient,    {.i = 0} },   // 移动窗口
+    { MODKEY|ShiftMask,    XK_n,       ExchangeClient,    {.i = 1 } },  // 移动窗口
+    { MODKEY|ShiftMask,    XK_o,       ExchangeClient,    {.i = 2 } },  // 移动窗口
+    { MODKEY|ShiftMask,    XK_h,       ExchangeClient,    {.i = 3} },   // 移动窗口
 //-----------------------------------------------------------------------------
     { MODKEY,              XK_a,     toggleoverview,    {0} },        // 显示所有tag 或 跳转到聚焦窗口的tag */
     { Mod1Mask,            XK_Tab,     focusstack,        {.i = +1} },  // 本tag内切换聚焦窗口 
@@ -253,7 +253,7 @@ static Key keys[] = {
     { MODKEY,              XK_d,       hidewin,           {0} },          // 隐藏窗口
     { MODKEY|ShiftMask,    XK_d,       restorewin,        {0} },          // 取消隐藏窗口
 //-----------------------------------------------------------------------------
-    { MODKEY,              XK_o,       showonlyorall,     {0} },          // 单窗口
+    { MODKEY,              XK_i,       showonlyorall,     {0} },          // 单窗口
     { MODKEY,              XK_f,     fullscreen,        {0} },          // 开启/关闭 全屏
 //-----------------------------------------------------------------------------
     { MODKEY|ShiftMask,    XK_f,                 togglebar,             {0} },          // 开启/关闭 状态栏 
@@ -263,15 +263,15 @@ static Key keys[] = {
     { MODKEY|ControlMask,  XK_minus,   setgap,            {.i = -5} },    // gap减小
     { MODKEY|ControlMask,  XK_space,   setgap,            {.i = 0} },     // gap重置
 //-----------------------------------------------------------------------------
-    { MODKEY|ControlMask,              XK_k,    movewin,           {.ui = UP} },   // 移动窗口
-    { MODKEY|ControlMask,              XK_j,    movewin,           {.ui = DOWN} }, // 移动窗口
-    { MODKEY|ControlMask,              XK_h,    movewin,           {.ui = LEFT} }, // 移动窗口
-    { MODKEY|ControlMask,              XK_l,    movewin,           {.ui = RIGHT} },// 移动窗口  
+    { MODKEY|ControlMask,              XK_o,    movewin,           {.ui = UP} },   // 移动窗口
+    { MODKEY|ControlMask,              XK_n,    movewin,           {.ui = DOWN} }, // 移动窗口
+    { MODKEY|ControlMask,              XK_e,    movewin,           {.ui = LEFT} }, // 移动窗口
+    { MODKEY|ControlMask,              XK_h,    movewin,           {.ui = RIGHT} },// 移动窗口  
 
-    { MODKEY|Alt,                      XK_k,    resizewin,         {.ui = V_REDUCE} },// 调整窗口 
-    { MODKEY|Alt,                      XK_j,    resizewin,         {.ui = V_EXPAND} },// 调整窗口      
-    { MODKEY|Alt,                      XK_h,    resizewin,         {.ui = H_REDUCE} },// 调整窗口     
-    { MODKEY|Alt,                      XK_l,    resizewin,         {.ui = H_EXPAND} },// 调整窗口    
+    { MODKEY|Alt,                      XK_o,    resizewin,         {.ui = V_REDUCE} },// 调整窗口 
+    { MODKEY|Alt,                      XK_n,    resizewin,         {.ui = V_EXPAND} },// 调整窗口      
+    { MODKEY|Alt,                      XK_e,    resizewin,         {.ui = H_REDUCE} },// 调整窗口     
+    { MODKEY|Alt,                      XK_h,    resizewin,         {.ui = H_EXPAND} },// 调整窗口    
 //-----------------------------------------------------------------------------
     { MODKEY,                          XK_s,    zoom,              {0} },          // 将当前聚焦窗口置为主窗口
 //-----------------------------------------------------------------------------
@@ -280,19 +280,19 @@ static Key keys[] = {
 //=============================================================================
 //                      基础和flextile 布局相关
 //=============================================================================
-    { MODKEY,              XK_e,       incnmaster,        {.i = +1} },    // 改变主窗口数 1或2 都有效
+    // { MODKEY,              XK_e,       incnmaster,        {.i = +1} },    // 改变主窗口数 1或2 都有效
     { MODKEY|ShiftMask,    XK_comma,   cyclelayout,       {.i = -1 } },   // 循环布局 都有效
     { MODKEY|ShiftMask,    XK_period,  cyclelayout,       {.i = +1 } },   // 循环布局 都有效
 //-----------------------------------------------------------------------------
-    { MODKEY,              XK_i,       incnstack,         {.i = +1 } },   // 增加从堆栈数 仅flextile有效
-    { MODKEY,              XK_u,       incnstack,         {.i = -1 } },   // 减少从堆栈数 仅flextile有效
+   //  { MODKEY,              XK_i,       incnstack,         {.i = +1 } },   // 增加从堆栈数 仅flextile有效
+   //  { MODKEY,              XK_u,       incnstack,         {.i = -1 } },   // 减少从堆栈数 仅flextile有效
   	{ MODKEY|ControlMask,  XK_Return,  mirrorlayout,      {0} },          // 翻转主区域和堆栈区域 仅flextile有效
 //-----------------------------------------------------------------------------
     { MODKEY|ControlMask,  XK_comma,   rotatelayoutaxis,  {.i = -1 } },   // 循环另一种布局 仅flextile有效
     { MODKEY|ControlMask,  XK_period,  rotatelayoutaxis,  {.i = +1 } },   // 循环另一种布局 仅flextile有效
 //-----------------------------------------------------------------------------
     // It's just need to map one key to change layout between layouts[0] and layouts[1].
-    // { MODKEY|ShiftMask,  XK_o,      selectlayout,     {.v = &layouts[0]} }, // 切换到第1个布局 
+    { MODKEY|ShiftMask,  XK_o,      selectlayout,     {.v = &layouts[0]} }, // 切换到第1个布局 
     { MODKEY|ShiftMask,   XK_space,      selectlayout,     {.v = &layouts[1]} }, // 切换到第2个布局 
 //-----------------------------------------------------------------------------
 
@@ -300,9 +300,9 @@ static Key keys[] = {
 //=============================================================================
 //                              多显示器配置
 //=============================================================================
-    { MODKEY,               XK_n,        focusmon,         {.i = -1} },     // 光标移动到另一个显示器
+    { MODKEY,               XK_p,        focusmon,         {.i = -1} },     // 光标移动到另一个显示器
     { MODKEY,               XK_m,        focusmon,         {.i = +1} },     // 光标移动到另一个显示器
-    { MODKEY|ShiftMask,     XK_n,        tagmon,           {.i = -1} },     // 将聚焦窗口移动到另一个显示器 
+    { MODKEY|ShiftMask,     XK_p,        tagmon,           {.i = -1} },     // 将聚焦窗口移动到另一个显示器 
     { MODKEY|ShiftMask,     XK_m,        tagmon,           {.i = +1} },     // 将聚焦窗口移动到另一个显示器   
 //-----------------------------------------------------------------------------
 
@@ -311,16 +311,16 @@ static Key keys[] = {
 //                              其它命令
 //=============================================================================
     // Notice that if you first use copyq , Remeber config 1.disable tray show 2.Enable hidden mainwindow. Then you can use this better.
-    { MODKEY,               XK_v,        spawn,   SHCMD("copyq toggle") },  // copyq
+    { MODKEY,               XK_c,        spawn,   SHCMD("copyq toggle") },  // copyq
     { MODKEY,               XK_b,           togglescratch, SHCMD("alacritty -t scratchpad --class floatingTerminal")  }, // 打开/隐藏scrtachpad
     { MODKEY,               XK_Return,          spawn,   SHCMD("alacritty") },                                          // 新打开一个终端
     // { MODKEY|ShiftMask,    XK_Return,   spawn,   SHCMD("alacritty -t term-global --class globalingTerminal") }, // 新打开一个浮动终端
     { MODKEY|ShiftMask,              XK_Return,        spawn,   SHCMD("alacritty -t term-float --class floatingTerminal") }, // 新打开一个全局浮动终端
-    { Alt|ShiftMask,       XK_u,        spawn,   SHCMD("alacritty -e ranger") }, // 打开资源管理器
+    // { Alt|ShiftMask,       XK_u,        spawn,   SHCMD("alacritty -e ranger") }, // 打开资源管理器
 
-    { Alt,                                  XK_l,                         spawn,            SHCMD("rofi -show drun -theme mine -show-icons") },
-    { Alt|ShiftMask,                        XK_l,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
-    { Alt|ControlMask|ShiftMask,            XK_l,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
+    { Alt,                                  XK_m,                         spawn,            SHCMD("rofi -show drun -theme mine -show-icons") },
+    { Alt|ShiftMask,                        XK_m,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
+    { Alt|ControlMask|ShiftMask,            XK_m,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
 
     { MODKEY,                               XK_F1,                        spawn,            SHCMD("xbacklight -get -5") },
     { MODKEY,                               XK_F2,                        spawn,            SHCMD("xbacklight -get +5") },
@@ -330,8 +330,8 @@ static Key keys[] = {
     { Alt|ShiftMask,                        XK_s,                         spawn,            SHCMD("flameshot gui -d 3000 -p ~/Screenshot/shot") },
     { Alt|ControlMask|ShiftMask,            XK_s,                         spawn,            SHCMD("flameshot full -p ~/Screenshot/full") },
 
-    { Alt|ControlMask,                      XK_l,                         spawn,            SHCMD("slock") },
-    { Alt,                                  XK_u,                         spawn,            SHCMD("pcmanfm") },
+    { Alt|ControlMask,                      XK_l,                         spawn,            SHCMD("i3lock") },
+    { Alt,                                  XK_u,                         spawn,            SHCMD("thunar") },
     { Alt,                                  XK_y,                         spawn,            SHCMD("/home/louis/.config/Build/Qv2ray/./Qv2ray") },
     { Alt,                                  XK_k,                         spawn,            SHCMD("screenkey -p fixed -g 50%x8%+25%-11%") },
     { Alt|ShiftMask,                        XK_k,                         spawn,            SHCMD("killall screenkey") },
