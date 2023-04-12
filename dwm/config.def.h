@@ -68,8 +68,8 @@ static const unsigned int alphas[][3] = {
 //=============================================================================
 static const char *disablekillclient[] = {
   "wemeetapp", // 腾讯会议顶栏,防止开会时关闭桌面共享了，没有这个需求可以注释
-  "tmux", // tmux不要误关了，防止有子窗口还在运行
-  "QQ", // QQ关闭后会直接退出,不会最小化,微信不需要这个操作
+  // "tmux", // tmux不要误关了，防止有子窗口还在运行
+  // "QQ", // QQ关闭后会直接退出,不会最小化,微信不需要这个操作
 };
 
 
@@ -241,7 +241,7 @@ static Key keys[] = {
     { MODKEY|Alt,              XK_Right,  setmfact,          {.f = +0.01} }, // 放大主工作区
 //-----------------------------------------------------------------------------
     { MODKEY|ShiftMask,              XK_w,       killclient,        {0} },        // 关闭当前窗口
-    { MODKEY|ControlMask|ShiftMask,  XK_w,       forcekillclient,   {0} },        // 强制关闭当前窗口
+    // { MODKEY|ControlMask|ShiftMask,  XK_w,       forcekillclient,   {0} },        // 强制关闭当前窗口
     { MODKEY|Alt,          XK_F12,  quit,              {0} },        // 退出dwm
     { MODKEY|ControlMask|ShiftMask, XK_F12, quit,      {1} },        // 重启dwm 
 //-----------------------------------------------------------------------------
