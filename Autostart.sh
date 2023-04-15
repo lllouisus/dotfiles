@@ -12,4 +12,3 @@ xsetroot -cursor_name left_ptr
 nitrogen --restore &
 xset dpms 600 600 600
 
-
