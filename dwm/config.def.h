@@ -33,30 +33,30 @@ static const unsigned int borderalpha     = 0xdd;      /* 边框透明度 */
 static const char *fonts[]               = {
       //"monospace:size=15",
     "JetBrainsMono Nerd Font:style=medium:size=11", "monospace:size=11"
-};  
+};
 
 
 //=============================================================================
-/* 颜色设置 ColFg, ColBg, ColBorder */ 
+/* 颜色设置 ColFg, ColBg, ColBorder */
 //=============================================================================
-static const char *colors[][3] = {        
+static const char *colors[][3] = {
     [SchemeNorm] = { "#bbbbbb", "#333333", "#444444" },
     [SchemeSel] = { "#ffffff", "#37474F", "#42A5F5" }, // #abd687
     [SchemeSelGlobal] = { "#ffffff", "#37474F", "#FFC0CB" },
     [SchemeHid] = { "#dddddd", NULL, NULL },
     [SchemeSystray] = { NULL, "#7799AA", NULL },
-    [SchemeUnderline] = { "#7799AA", NULL, NULL }, 
+    [SchemeUnderline] = { "#7799AA", NULL, NULL },
     [SchemeNormTag] = { "#bbbbbb", "#333333", NULL },
     [SchemeSelTag] = { "#eeeeee", "#333333", NULL },
     [SchemeBarEmpty] = { NULL, "#111111", NULL },
 };
 //-----------------------------------------------------------------------------
-/* 透明度设置 ColFg, ColBg, ColBorder */ 
-static const unsigned int alphas[][3] = {         
-    [SchemeNorm] = { OPAQUE, baralpha, borderalpha }, 
+/* 透明度设置 ColFg, ColBg, ColBorder */
+static const unsigned int alphas[][3] = {
+    [SchemeNorm] = { OPAQUE, baralpha, borderalpha },
     [SchemeSel] = { OPAQUE, baralpha, borderalpha },
     [SchemeSelGlobal] = { OPAQUE, baralpha, borderalpha },
-    [SchemeNormTag] = { OPAQUE, baralpha, borderalpha }, 
+    [SchemeNormTag] = { OPAQUE, baralpha, borderalpha },
     [SchemeSelTag] = { OPAQUE, baralpha, borderalpha },
     [SchemeBarEmpty] = { NULL, 0xa0a, NULL },
     [SchemeStatusText] = { OPAQUE, 0x88, NULL },
@@ -90,7 +90,7 @@ static const char scratchpadname[] = "scratchpad";
 
 
 //=============================================================================
-//                   tag icon 
+//                   tag icon
 //            ﮸  ﭮ 切  ﬐ // 增补图标
 //            
 //=============================================================================
@@ -102,7 +102,7 @@ static const char *tags[] = { "", "", "", "", "" };
 // 如果发现启动异常，相关脚本或任务没有执行，可以删除这些临时文件再重启电脑
 //=============================================================================
 /* Lockfile */ // doublepressquitPatch
-static char lockfile[] = "/tmp/dwm.lock"; 
+static char lockfile[] = "/tmp/dwm.lock";
 //-----------------------------------------------------------------------------
 /* Super-Ctrl-Shift-Esc 热重启dwm后不会重复执行autostart脚本 */
 static const char* avoid_repeat_auto_start = "/tmp/dwm_avoid_repeat_auto_start.lock"; // doublepressquitPatch
@@ -128,10 +128,10 @@ static const Rule rules[] = {
     {NULL,          NULL,     "图片查看",  TAGMASK,     1,         0,        0,        -1},  // qq image preview title
     {NULL,          NULL, "Image Preview", TAGMASK,     1,         0,        0,        -1},  // wechat image preview title
     // {"钉钉",      NULL,       NULL,      TAGMASK, 1, 1,          0,        -1 },
-    // {"dingtalk",   NULL,    NULL,      TAGMASK, 1,          1,          0, -1 }, 
-    // {"com.alibabainc.dingtalk",    NULL,  NULL, TAGMASK, 1,  1,  0,  -1 }, 
-    // {"tblive",  NULL,     NULL,  TAGMASK, 1, 1,0,        -1 }, 
-    // { NULL, NULL, "broken", TAGMASK,   1, 0, 0,    -1 }, // qq upload file's win is broken 
+    // {"dingtalk",   NULL,    NULL,      TAGMASK, 1,          1,          0, -1 },
+    // {"com.alibabainc.dingtalk",    NULL,  NULL, TAGMASK, 1,  1,  0,  -1 },
+    // {"tblive",  NULL,     NULL,  TAGMASK, 1, 1,0,        -1 },
+    // { NULL, NULL, "broken", TAGMASK,   1, 0, 0,    -1 }, // qq upload file's win is broken
     // { NULL, NULL, "图片预览",  0,  1,   0,   0,  -1 },
 
 //-----------------------------------------------------------------------------
@@ -168,7 +168,7 @@ static const Layout overviewlayout = { "", overview };
 #if 0 // 0为第一套，1第二套
 //-----------------------------------------------------------------------------
 static const Layout layouts[] = {
-  //symbol     arrange function   
+  //symbol     arrange function
     {"﬿",        tile},      /* 主次栈 */
     {"﩯",     magicgrid},   /* 网格 */
     {"TR",    tile_right},   /* 主次栈 主侧放在右侧*/
@@ -178,22 +178,22 @@ static const Layout layouts[] = {
 #else
 //-----------------------------------------------------------------------------
 static const Layout layouts[] = {
-	/* symbol     arrange function, { nmaster, nstack, layout, master axis, stack axis, secondary stack axis } */
-	{ "﬿",          flextile,         { -1, -1, SPLIT_VERTICAL, TOP_TO_BOTTOM, TOP_TO_BOTTOM, 0, NULL } }, // default tile layout
+        /* symbol     arrange function, { nmaster, nstack, layout, master axis, stack axis, secondary stack axis } */
+        { "﬿",          flextile,         { -1, -1, SPLIT_VERTICAL, TOP_TO_BOTTOM, TOP_TO_BOTTOM, 0, NULL } }, // default tile layout
   { "﩯",        magicgrid,{0} },    /* 网格 */
-	// { "><>",      NULL,             {0} },    /* no layout function means floating behavior */ // 已经被win+shift+f 替代，不用这个
-	// { "[M]",      flextile,         { -1, -1, NO_SPLIT, MONOCLE, MONOCLE, 0, NULL } }, // monocle
-	// { "|||",      flextile,         { -1, -1, SPLIT_VERTICAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, NULL } }, // columns (col) layout //其实就是tile
-	// { ">M>",      flextile,         { -1, -1, FLOATING_MASTER, LEFT_TO_RIGHT, LEFT_TO_RIGHT, 0, NULL } }, // floating master
-	// { "[D]",      flextile,         { -1, -1, SPLIT_VERTICAL, TOP_TO_BOTTOM, MONOCLE, 0, NULL } }, // deck
-	{ "TTT",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, LEFT_TO_RIGHT, 0, NULL } }, // bstack
-	{ "===",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, NULL } }, // bstackhoriz
-	// { ":::",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, monoclesymbols } }, // centeredmaster
-	{ "gapless",      flextile,         { -1, -1, NO_SPLIT, GAPPLESSGRID, GAPPLESSGRID, 0, NULL } }, // gappless grid
-	{ "[\\]",     flextile,         { -1, -1, NO_SPLIT, DWINDLE, DWINDLE, 0, NULL } }, // fibonacci dwindle
-	{ "(@)",      flextile,         { -1, -1, NO_SPLIT, SPIRAL, SPIRAL, 0, NULL } }, // fibonacci spiral
-	{ "[T]",      flextile,         { -1, -1, SPLIT_VERTICAL, LEFT_TO_RIGHT, TATAMI, 0, NULL } }, // tatami mats
-	{ NULL,       NULL,             {0} },//最后一个需要是NULL,NULL,cyclelayout,请勿更改
+        // { "><>",      NULL,             {0} },    /* no layout function means floating behavior */ // 已经被win+shift+f 替代，不用这个
+        // { "[M]",      flextile,         { -1, -1, NO_SPLIT, MONOCLE, MONOCLE, 0, NULL } }, // monocle
+        // { "|||",      flextile,         { -1, -1, SPLIT_VERTICAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, NULL } }, // columns (col) layout //其实就是tile
+        // { ">M>",      flextile,         { -1, -1, FLOATING_MASTER, LEFT_TO_RIGHT, LEFT_TO_RIGHT, 0, NULL } }, // floating master
+        // { "[D]",      flextile,         { -1, -1, SPLIT_VERTICAL, TOP_TO_BOTTOM, MONOCLE, 0, NULL } }, // deck
+        { "TTT",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, LEFT_TO_RIGHT, 0, NULL } }, // bstack
+        { "===",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, NULL } }, // bstackhoriz
+        // { ":::",      flextile,         { -1, -1, SPLIT_HORIZONTAL, LEFT_TO_RIGHT, TOP_TO_BOTTOM, 0, monoclesymbols } }, // centeredmaster
+        { "gapless",      flextile,         { -1, -1, NO_SPLIT, GAPPLESSGRID, GAPPLESSGRID, 0, NULL } }, // gappless grid
+        { "[\\]",     flextile,         { -1, -1, NO_SPLIT, DWINDLE, DWINDLE, 0, NULL } }, // fibonacci dwindle
+        { "(@)",      flextile,         { -1, -1, NO_SPLIT, SPIRAL, SPIRAL, 0, NULL } }, // fibonacci spiral
+        { "[T]",      flextile,         { -1, -1, SPLIT_VERTICAL, LEFT_TO_RIGHT, TATAMI, 0, NULL } }, // tatami mats
+        { NULL,       NULL,             {0} },//最后一个需要是NULL,NULL,cyclelayout,请勿更改
  };
 #endif
 
@@ -213,29 +213,29 @@ static const Layout layouts[] = {
 
 //=============================================================================
 //                           按键配置
-//  modifier            key              function          argument 
+//  modifier            key              function          argument
 //=============================================================================
 static Key keys[] = {
 //=============================================================================
 //           一些基础快捷键，符合配置的核心按键思想，不建议更改
 //=============================================================================
-  	{ MODKEY,              XK_e,       focusdir,          {.i = 0 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_n,       focusdir,          {.i = 1 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_o,       focusdir,          {.i = 2 } },  // 切换聚焦窗口
-  	{ MODKEY,              XK_h,       focusdir,          {.i = 3 } },  // 切换聚焦窗口
+        { MODKEY,              XK_n,       focusdir,          {.i = 0 } },  // 切换聚焦窗口
+        { MODKEY,              XK_e,       focusdir,          {.i = 1 } },  // 切换聚焦窗口
+        { MODKEY,              XK_u,       focusdir,          {.i = 2 } },  // 切换聚焦窗口
+        { MODKEY,              XK_i,       focusdir,          {.i = 3 } },  // 切换聚焦窗口
 //-----------------------------------------------------------------------------
-    { MODKEY|ShiftMask,    XK_e,       ExchangeClient,    {.i = 0} },   // 移动窗口
-    { MODKEY|ShiftMask,    XK_n,       ExchangeClient,    {.i = 1 } },  // 移动窗口
-    { MODKEY|ShiftMask,    XK_o,       ExchangeClient,    {.i = 2 } },  // 移动窗口
-    { MODKEY|ShiftMask,    XK_h,       ExchangeClient,    {.i = 3} },   // 移动窗口
+    { MODKEY|ShiftMask,    XK_n,       ExchangeClient,    {.i = 0} },   // 移动窗口
+    { MODKEY|ShiftMask,    XK_e,       ExchangeClient,    {.i = 1 } },  // 移动窗口
+    { MODKEY|ShiftMask,    XK_u,       ExchangeClient,    {.i = 2 } },  // 移动窗口
+    { MODKEY|ShiftMask,    XK_i,       ExchangeClient,    {.i = 3} },   // 移动窗口
 //-----------------------------------------------------------------------------
-    { MODKEY,              XK_a,     toggleoverview,    {0} },        // 显示所有tag 或 跳转到聚焦窗口的tag */
-    { Mod1Mask,            XK_Tab,     focusstack,        {.i = +1} },  // 本tag内切换聚焦窗口 
-    { Mod1Mask|ShiftMask,  XK_Tab,     focusstack,        {.i = -1} },  // 本tag内切换聚焦窗口  
+    { MODKEY,              XK_Tab,     toggleoverview,    {0} },        // 显示所有tag 或 跳转到聚焦窗口的tag */
+    { Mod1Mask,            XK_Tab,     focusstack,        {.i = +1} },  // 本tag内切换聚焦窗口
+    { Mod1Mask|ShiftMask,  XK_Tab,     focusstack,        {.i = -1} },  // 本tag内切换聚焦窗口
 //-----------------------------------------------------------------------------
     { MODKEY,              XK_q,       togglefloating,    {0} },        // 开启/关闭 当前窗口的float模式
     { MODKEY|ShiftMask,    XK_q,       toggleallfloating, {0} },        // 开启/关闭 当前tag 的float模式
-    { MODKEY,              XK_g,       toggleglobal,      {0} },        // 开启/关闭 全局 
+    { MODKEY,              XK_g,       toggleglobal,      {0} },        // 开启/关闭 全局
 //-----------------------------------------------------------------------------
     { MODKEY|Alt,              XK_Left,   setmfact,          {.f = -0.01} }, // 缩小主工作区
     { MODKEY|Alt,              XK_Right,  setmfact,          {.f = +0.01} }, // 放大主工作区
@@ -243,67 +243,67 @@ static Key keys[] = {
     { MODKEY|ShiftMask,              XK_w,       killclient,        {0} },        // 关闭当前窗口
     // { MODKEY|ControlMask|ShiftMask,  XK_w,       forcekillclient,   {0} },        // 强制关闭当前窗口
     { MODKEY|Alt,          XK_F12,  quit,              {0} },        // 退出dwm
-    { MODKEY|ControlMask|ShiftMask, XK_F12, quit,      {1} },        // 重启dwm 
+    { MODKEY|ControlMask|ShiftMask, XK_F12, quit,      {1} },        // 重启dwm
 //-----------------------------------------------------------------------------
-  
+
 
 //=============================================================================
 //                 一些其它快捷键，可以根据需要和习惯更改
 //=============================================================================
-    { MODKEY,              XK_d,       hidewin,           {0} },          // 隐藏窗口
-    { MODKEY|ShiftMask,    XK_d,       restorewin,        {0} },          // 取消隐藏窗口
+    { MODKEY,              XK_h,       hidewin,           {0} },          // 隐藏窗口
+    { MODKEY|ShiftMask,    XK_h,       restorewin,        {0} },          // 取消隐藏窗口
 //-----------------------------------------------------------------------------
-    { MODKEY,              XK_i,       showonlyorall,     {0} },          // 单窗口
-    { MODKEY,              XK_f,     fullscreen,        {0} },          // 开启/关闭 全屏
+    { MODKEY,              XK_o,       showonlyorall,     {0} },          // 单窗口
+    { MODKEY|ShiftMask,    XK_o,     fullscreen,        {0} },          // 开启/关闭 全屏
 //-----------------------------------------------------------------------------
-    { MODKEY|ShiftMask,    XK_f,                 togglebar,             {0} },          // 开启/关闭 状态栏 
-    { MODKEY|ControlMask|ShiftMask,              XK_f,togglesystray,    {0} },          // 开启/关闭 托盘栏
+    { MODKEY|ShiftMask,    XK_t,                 togglebar,             {0} },          // 开启/关闭 状态栏
+    { MODKEY|ControlMask|ShiftMask,              XK_t,togglesystray,    {0} },          // 开启/关闭 托盘栏
 //-----------------------------------------------------------------------------
     { MODKEY|ControlMask,  XK_equal,   setgap,            {.i = +5} },    // gap增大
     { MODKEY|ControlMask,  XK_minus,   setgap,            {.i = -5} },    // gap减小
     { MODKEY|ControlMask,  XK_space,   setgap,            {.i = 0} },     // gap重置
 //-----------------------------------------------------------------------------
-    { MODKEY|ControlMask,              XK_o,    movewin,           {.ui = UP} },   // 移动窗口
-    { MODKEY|ControlMask,              XK_n,    movewin,           {.ui = DOWN} }, // 移动窗口
-    { MODKEY|ControlMask,              XK_e,    movewin,           {.ui = LEFT} }, // 移动窗口
-    { MODKEY|ControlMask,              XK_h,    movewin,           {.ui = RIGHT} },// 移动窗口  
+    { MODKEY|ControlMask,              XK_u,    movewin,           {.ui = UP} },   // 移动窗口
+    { MODKEY|ControlMask,              XK_e,    movewin,           {.ui = DOWN} }, // 移动窗口
+    { MODKEY|ControlMask,              XK_n,    movewin,           {.ui = LEFT} }, // 移动窗口
+    { MODKEY|ControlMask,              XK_i,    movewin,           {.ui = RIGHT} },// 移动窗口
 
-    { MODKEY|Alt,                      XK_o,    resizewin,         {.ui = V_REDUCE} },// 调整窗口 
-    { MODKEY|Alt,                      XK_n,    resizewin,         {.ui = V_EXPAND} },// 调整窗口      
-    { MODKEY|Alt,                      XK_e,    resizewin,         {.ui = H_REDUCE} },// 调整窗口     
-    { MODKEY|Alt,                      XK_h,    resizewin,         {.ui = H_EXPAND} },// 调整窗口    
+    { MODKEY|Alt,                      XK_u,    resizewin,         {.ui = V_REDUCE} },// 调整窗口
+    { MODKEY|Alt,                      XK_e,    resizewin,         {.ui = V_EXPAND} },// 调整窗口
+    { MODKEY|Alt,                      XK_n,    resizewin,         {.ui = H_REDUCE} },// 调整窗口
+    { MODKEY|Alt,                      XK_i,    resizewin,         {.ui = H_EXPAND} },// 调整窗口
 //-----------------------------------------------------------------------------
     { MODKEY,                          XK_s,    zoom,              {0} },          // 将当前聚焦窗口置为主窗口
 //-----------------------------------------------------------------------------
-  
+
 
 //=============================================================================
 //                      基础和flextile 布局相关
 //=============================================================================
-    // { MODKEY,              XK_e,       incnmaster,        {.i = +1} },    // 改变主窗口数 1或2 都有效
+    /* { MODKEY,              XK_e,       incnmaster,        {.i = +1} }, */    // 改变主窗口数 1或2 都有效
     { MODKEY|ShiftMask,    XK_comma,   cyclelayout,       {.i = -1 } },   // 循环布局 都有效
     { MODKEY|ShiftMask,    XK_period,  cyclelayout,       {.i = +1 } },   // 循环布局 都有效
 //-----------------------------------------------------------------------------
    //  { MODKEY,              XK_i,       incnstack,         {.i = +1 } },   // 增加从堆栈数 仅flextile有效
    //  { MODKEY,              XK_u,       incnstack,         {.i = -1 } },   // 减少从堆栈数 仅flextile有效
-  	{ MODKEY|ControlMask,  XK_Return,  mirrorlayout,      {0} },          // 翻转主区域和堆栈区域 仅flextile有效
+        { MODKEY|ControlMask,  XK_Return,  mirrorlayout,      {0} },          // 翻转主区域和堆栈区域 仅flextile有效
 //-----------------------------------------------------------------------------
     { MODKEY|ControlMask,  XK_comma,   rotatelayoutaxis,  {.i = -1 } },   // 循环另一种布局 仅flextile有效
     { MODKEY|ControlMask,  XK_period,  rotatelayoutaxis,  {.i = +1 } },   // 循环另一种布局 仅flextile有效
 //-----------------------------------------------------------------------------
     // It's just need to map one key to change layout between layouts[0] and layouts[1].
-    { MODKEY|ShiftMask,  XK_o,      selectlayout,     {.v = &layouts[0]} }, // 切换到第1个布局 
-    { MODKEY|ShiftMask,   XK_space,      selectlayout,     {.v = &layouts[1]} }, // 切换到第2个布局 
+    /* { MODKEY|ShiftMask,  XK_o,      selectlayout,     {.v = &layouts[0]} }, // 切换到第1个布局  */
+    { MODKEY|ShiftMask,   XK_space,      selectlayout,     {.v = &layouts[1]} }, // 切换到第2个布局
 //-----------------------------------------------------------------------------
 
 
 //=============================================================================
 //                              多显示器配置
 //=============================================================================
-    { MODKEY,               XK_p,        focusmon,         {.i = -1} },     // 光标移动到另一个显示器
+        /* { MODKEY,               XK_n,        focusmon,         {.i = -1} }, */     // 光标移动到另一个显示器
     { MODKEY,               XK_m,        focusmon,         {.i = +1} },     // 光标移动到另一个显示器
-    { MODKEY|ShiftMask,     XK_p,        tagmon,           {.i = -1} },     // 将聚焦窗口移动到另一个显示器 
-    { MODKEY|ShiftMask,     XK_m,        tagmon,           {.i = +1} },     // 将聚焦窗口移动到另一个显示器   
+        //{ MODKEY|ShiftMask,     XK_n,        tagmon,           {.i = -1} },     // 将聚焦窗口移动到另一个显示器
+    { MODKEY|ShiftMask,     XK_m,        tagmon,           {.i = +1} },     // 将聚焦窗口移动到另一个显示器
 //-----------------------------------------------------------------------------
 
 
@@ -312,29 +312,31 @@ static Key keys[] = {
 //=============================================================================
     // Notice that if you first use copyq , Remeber config 1.disable tray show 2.Enable hidden mainwindow. Then you can use this better.
     { MODKEY,               XK_c,        spawn,   SHCMD("copyq toggle") },  // copyq
-    { MODKEY,               XK_b,           togglescratch, SHCMD("alacritty -t scratchpad --class floatingTerminal")  }, // 打开/隐藏scrtachpad
+    { MODKEY,               XK_w,           togglescratch, SHCMD("alacritty -t scratchpad --class floatingTerminal")  }, // 打开/隐藏scrtachpad
     { MODKEY,               XK_Return,          spawn,   SHCMD("alacritty") },                                          // 新打开一个终端
     // { MODKEY|ShiftMask,    XK_Return,   spawn,   SHCMD("alacritty -t term-global --class globalingTerminal") }, // 新打开一个浮动终端
     { MODKEY|ShiftMask,              XK_Return,        spawn,   SHCMD("alacritty -t term-float --class floatingTerminal") }, // 新打开一个全局浮动终端
     // { Alt|ShiftMask,       XK_u,        spawn,   SHCMD("alacritty -e ranger") }, // 打开资源管理器
 
-    { Alt,                                  XK_m,                         spawn,            SHCMD("rofi -show drun -theme mine -show-icons") },
-    { Alt|ShiftMask,                        XK_m,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
-    { Alt|ControlMask|ShiftMask,            XK_m,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
+    { MODKEY|ShiftMask,                        XK_b,                         spawn,            SHCMD("emacsclient -c -a 'emacs'") },
+
+    { MODKEY,                                  XK_r,                         spawn,            SHCMD("rofi -show drun -theme mine -show-icons") },
+    { MODKEY|ShiftMask,                        XK_r,                         spawn,            SHCMD("rofi -show run -theme mine -show-icons") },
+    { MODKEY|ControlMask|ShiftMask,            XK_r,                         spawn,            SHCMD("rofi -show ssh -theme mine -show-icons") },
 
     { MODKEY,                               XK_F1,                        spawn,            SHCMD("xbacklight -get -5") },
     { MODKEY,                               XK_F2,                        spawn,            SHCMD("xbacklight -get +5") },
     { MODKEY,                               XK_F3,                        spawn,            SHCMD("amixer set Master toggle") },
 
-    { Alt,                                  XK_s,                         spawn,            SHCMD("flameshot gui -p ~/Screenshot/shot") },
-    { Alt|ShiftMask,                        XK_s,                         spawn,            SHCMD("flameshot gui -d 3000 -p ~/Screenshot/shot") },
-    { Alt|ControlMask|ShiftMask,            XK_s,                         spawn,            SHCMD("flameshot full -p ~/Screenshot/full") },
+    { MODKEY,                                  XK_z,                         spawn,            SHCMD("flameshot gui -p ~/Screenshot/shot") },
+    { MODKEY|ShiftMask,                        XK_z,                         spawn,            SHCMD("flameshot gui -d 3000 -p ~/Screenshot/shot") },
+    { MODKEY|ControlMask|ShiftMask,            XK_z,                         spawn,            SHCMD("flameshot full -p ~/Screenshot/full") },
 
-    { Alt|ControlMask,                      XK_l,                         spawn,            SHCMD("i3lock") },
-    { Alt,                                  XK_u,                         spawn,            SHCMD("thunar") },
-    { Alt,                                  XK_y,                         spawn,            SHCMD("/home/louis/.config/Build/Qv2ray/./Qv2ray") },
-    { Alt,                                  XK_k,                         spawn,            SHCMD("screenkey -p fixed -g 50%x8%+25%-11%") },
-    { Alt|ShiftMask,                        XK_k,                         spawn,            SHCMD("killall screenkey") },
+    // { Alt|ControlMask,                      XK_l,                         spawn,            SHCMD("i3lock") },
+    // { Alt,                                  XK_u,                         spawn,            SHCMD("thunar") },
+    { MODKEY,                                  XK_y,                         spawn,            SHCMD("/home/louis/.config/Build/Qv2ray/./Qv2ray") },
+    // { MODKEY,                                  XK_k,                         spawn,            SHCMD("screenkey -p fixed -g 50%x8%+25%-11%") },
+    // { MODKEY|ShiftMask,                        XK_k,                         spawn,            SHCMD("killall screenkey") },
 
 
 //-----------------------------------------------------------------------------
@@ -349,11 +351,11 @@ static Key keys[] = {
     // { MODKEY|ShiftMask,    XK_j,        rotatestack,      {.i = +1 } },    /* rotate the stack*/
     // { MODKEY|ShiftMask,    XK_k,        rotatestack,      {.i = -1 } },    /* rotate the stack*/
 //-----------------------------------------------------------------------------
-    // { MODKEY|ShiftMask,    XK_Left,     viewtoleft,       {0} },      //聚焦到左边的tag 
-    // { MODKEY|ShiftMask,    XK_Right,    viewtoright,      {0} },      // 聚焦到右边的tag 
+    // { MODKEY|ShiftMask,    XK_Left,     viewtoleft,       {0} },      //聚焦到左边的tag
+    // { MODKEY|ShiftMask,    XK_Right,    viewtoright,      {0} },      // 聚焦到右边的tag
 //-----------------------------------------------------------------------------
     // { MODKEY|ShiftMask,    XK_Left,     tagtoleft,        {0} },      // 将本窗口移动到左边tag
-    // { MODKEY|ShiftMask,    XK_Right,    tagtoright,       {0} },      // 将本窗口移动到右边tag 
+    // { MODKEY|ShiftMask,    XK_Right,    tagtoright,       {0} },      // 将本窗口移动到右边tag
 //-----------------------------------------------------------------------------
 
 
@@ -374,8 +376,8 @@ static Key keys[] = {
     //TAGKEYS(XK_0, 8,  "linuxqq")
     //TAGKEYS(XK_w, 9,  "/opt/apps/com.qq.weixin.deepin/files/run.sh")
     //TAGKEYS(XK_l, 10, "/opt/apps/com.qq.weixin.work.deepin/files/run.sh")
-    
-    
+
+
 //=============================================================================
 //    根据相关信号执行指令，一般不需要更改，但需要注意相关指令包存在
 //=============================================================================
@@ -414,10 +416,10 @@ static Button buttons[] = {
     /* 点击tag操作 */
 //=============================================================================
     { ClkTagBar,           0,          Button1,     view,          {0} },                                   // 左键        |  点击tag      |  切换tag
-	  { ClkTagBar,           0,          Button3,     toggleview,    {0} },                                   // 右键        |  点击tag      |  切换是否显示tag
+          { ClkTagBar,           0,          Button3,     toggleview,    {0} },                                   // 右键        |  点击tag      |  切换是否显示tag
     { ClkTagBar,           MODKEY,     Button1,     tag,           {0} },                                   // super+左键  |  点击tag      |  将窗口移动到对应tag
     { ClkTagBar,           0,          Button4,     viewtoleft,    {0} },                                   // 鼠标滚轮上  |  tag          |  向前切换tag
-	  { ClkTagBar,           0,          Button5,     viewtoright,   {0} },                                   // 鼠标滚轮下  |  tag          |  向后切换tag
+          { ClkTagBar,           0,          Button5,     viewtoright,   {0} },                                   // 鼠标滚轮下  |  tag          |  向后切换tag
 
 //=============================================================================
     /* 点击bar空白处 有需要自行启动 */
@@ -429,7 +431,7 @@ static Button buttons[] = {
     /* 点击状态栏操作 */
  // 根据状态栏的信号执行  statusbarscript signal L/M/R/U/D
 //=============================================================================
-    { ClkStatusText,       0,          Button1,     clickstatusbar,{0} },   // 左键        |  点击状态栏   | 
+    { ClkStatusText,       0,          Button1,     clickstatusbar,{0} },   // 左键        |  点击状态栏   |
     { ClkStatusText,       0,          Button2,     clickstatusbar,{0} },   // 中键        |  点击状态栏   |  根据状态栏的信号执行 ~/scripts/dwmstatusbar.sh $signal M
     { ClkStatusText,       0,          Button3,     clickstatusbar,{0} },   // 右键        |  点击状态栏   |  根据状态栏的信号执行 ~/scripts/dwmstatusbar.sh $signal R
     { ClkStatusText,       0,          Button4,     clickstatusbar,{0} },   // 鼠标滚轮上  |  状态栏       |  根据状态栏的信号执行 ~/scripts/dwmstatusbar.sh $signal U
